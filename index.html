@@ -1,0 +1,2626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ES Print Group — Customer Clearing House</title>
+<style>
+  :root {
+    --bg:#f4f6fa;--card:#fff;--ink:#1b2437;--ink-soft:#5b6577;--line:#e3e7ef;
+    --primary:#1f4fd6;--primary-dark:#173cab;--success:#1b9e6b;
+    --warning:#d19a00;--danger:#c0392b;--accent:#f0f4ff;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);line-height:1.45;}
+  header{background:linear-gradient(135deg,#1f4fd6,#0a2a8c);color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  header h1{margin:0;font-size:20px;}
+  .tag{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);padding:4px 10px;border-radius:999px;font-size:12px;}
+  .btn{background:var(--primary);color:#fff;border:none;padding:9px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;}
+  .btn:hover{background:var(--primary-dark);}
+  .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.4);}
+  .btn.ghost:hover{background:rgba(255,255,255,0.12);}
+  .btn.secondary{background:#eef1f8;color:var(--ink);}
+  .btn.secondary:hover{background:#dfe5f1;}
+  .btn.danger{background:var(--danger);}
+  .btn.danger:hover{background:#962919;}
+  .btn.success{background:var(--success);}
+  .btn.success:hover{background:#147a52;}
+  main{padding:24px 32px 60px;max-width:820px;margin:0 auto;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;box-shadow:0 1px 2px rgba(16,24,40,0.04);margin-bottom:18px;}
+  .card h2{margin:0 0 14px;font-size:15px;}
+  .card h2 small{font-weight:400;color:var(--ink-soft);font-size:12px;}
+  .field{margin-bottom:12px;display:flex;flex-direction:column;}
+  .field label{font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;}
+  .field input,.field textarea{padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:13px;font-family:inherit;background:#fff;color:var(--ink);transition:border-color 0.15s;}
+  .field input:focus,.field textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(31,79,214,0.12);}
+  .field textarea{resize:vertical;min-height:60px;}
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .form-actions{display:flex;gap:8px;margin-top:6px;}
+  .form-actions .btn{flex:1;}
+  .result-banner{padding:14px 16px;border-radius:8px;margin-bottom:14px;font-size:13px;display:none;}
+  .result-banner.ok{background:#e2f7ec;border:1px solid #a5d8bc;color:#147a52;display:block;}
+  .result-banner.warn{background:#fff7e0;border:1px solid #f0d890;color:#7a5a00;display:block;}
+  .result-banner.info{background:#e1ecff;border:1px solid #a8c0ef;color:#173cab;display:block;}
+  .match-card{border:1px solid var(--line);border-left:4px solid var(--warning);padding:12px 14px;border-radius:8px;margin:10px 0;background:#fffdf5;font-size:13px;}
+  .match-field{display:inline-block;background:#fff3c4;color:#7a5a00;padding:1px 7px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:#fff;padding:12px 18px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(10px);transition:all 0.25s;z-index:200;pointer-events:none;max-width:360px;}
+  .toast.show{opacity:1;transform:translateY(0);}
+  .toast.success{background:var(--success);}
+  .toast.error{background:var(--danger);}
+  .toast.warning{background:var(--warning);}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(10,20,50,0.55);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+  .modal-backdrop.show{display:flex;}
+  .modal{background:#fff;border-radius:12px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:24px;}
+  .modal h3{margin-top:0;}
+  .modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;}
+  .small-note{font-size:11.5px;color:var(--ink-soft);margin-top:4px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  thead th{background:#fafbfe;text-align:left;padding:10px 8px;font-weight:600;color:var(--ink-soft);border-bottom:1px solid var(--line);position:sticky;top:0;font-size:11.5px;text-transform:uppercase;letter-spacing:0.4px;}
+  tbody td{padding:10px 8px;border-bottom:1px solid #f0f2f7;vertical-align:top;}
+  tbody tr:hover{background:#f7f9fd;cursor:pointer;}
+  .empty{padding:40px 20px;text-align:center;color:var(--ink-soft);font-size:13px;}
+  .row-btn{padding:5px 9px;font-size:11.5px;margin-right:4px;}
+  .list-toolbar{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;}
+  .list-toolbar input[type="search"]{flex:1;min-width:200px;padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:13px;}
+  .stats{font-size:12px;color:var(--ink-soft);margin-right:auto;}
+  .table-wrap{max-height:58vh;overflow:auto;border:1px solid var(--line);border-radius:8px;}
+  kbd{background:#eef1f8;border:1px solid #ccd3e0;border-bottom-width:2px;border-radius:4px;padding:1px 6px;font-size:11px;}
+  .hero{text-align:center;padding:30px 20px 10px;}
+  #syncIndicator{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;}
+</style>
+</head>
+<body>
+<header id="appHeader" style="display:none;">
+  <div>
+    <h1>ES Print Group — Customer Clearing House</h1>
+    <div style="font-size:12px;opacity:0.85;margin-top:3px;">
+      <span class="tag" id="recordCountTag">0 records</span>
+      <span class="tag" id="branchTag">Branch not set</span>
+      <span class="tag" id="userTag" style="background:rgba(255,255,255,0.22);">—</span>
+      <span id="syncIndicator" style="background:#eef1f8;color:#5b6577;margin-left:4px;">Local mode</span>
+    </div>
+  </div>
+  <div>
+    <button class="btn ghost" onclick="openSmartPaste()">Smart Paste</button>
+    <button class="btn ghost" onclick="showHelp()">Help</button>
+    <button class="btn ghost" id="headerUserBtn" onclick="openUserManager()" style="display:none;">👥 Add User</button>
+    <button class="btn ghost" onclick="openAdmin()">Admin</button>
+  </div>
+</header>
+
+<main id="appMain" style="display:none;">
+  <div class="hero">
+    <h2 style="margin:0 0 6px;font-size:18px;">Check a customer</h2>
+    <p style="color:var(--ink-soft);margin:0;font-size:13px;">Enter the details below. The system will check if the customer already exists.</p>
+  </div>
+  <div id="resultBanner" class="result-banner"></div>
+  <div id="matchList"></div>
+  <section class="card">
+    <h2 id="formTitle">Customer details <small>(Contact Person and Contact Number are required)</small></h2>
+    <form id="entryForm" onsubmit="event.preventDefault();">
+      <div class="field"><label>Company Name</label><input type="text" id="f_name" autocomplete="off" oninput="invalidateCheck()" /></div>
+      <div class="field"><label>Contact Person *</label><input type="text" id="f_contact" required autocomplete="off" oninput="invalidateCheck()" /></div>
+      <div class="field"><label>Contact Number *</label><input type="text" id="f_phone" required autocomplete="off" oninput="invalidateCheck()" /></div>
+      <div class="field"><label>Alternate Contact Number</label><input type="text" id="f_phone2" autocomplete="off" oninput="invalidateCheck()" /></div>
+      <div class="field"><label>Email Address</label><input type="email" id="f_email" autocomplete="off" oninput="invalidateCheck()" /></div>
+      <div class="field"><label>Alternate Email</label><input type="email" id="f_alt_email" autocomplete="off" oninput="invalidateCheck()" /></div>
+      <div class="field"><label>Location / Address</label><textarea id="f_address" oninput="invalidateCheck()"></textarea></div>
+      <div class="row-2">
+        <div class="field"><label>City</label><input type="text" id="f_city" autocomplete="off" oninput="invalidateCheck();autoFillProvince()" /></div>
+        <div class="field"><label>Province</label><input type="text" id="f_province" autocomplete="off" oninput="invalidateCheck()" /></div>
+      </div>
+      <div class="field"><label>Lead Source</label><input type="text" id="f_lead_source" autocomplete="off" /></div>
+      <div class="field"><label>Inquiry</label><textarea id="f_inquiry"></textarea></div>
+      <div class="field"><label>AE (Account Executive)</label><input type="text" id="f_ae_full" autocomplete="off" /></div>
+      <div class="field"><label>SM (Sales Manager)</label><input type="text" id="f_sm_full" autocomplete="off" /></div>
+      <input type="hidden" id="f_id" />
+      <div class="form-actions">
+        <button type="button" class="btn" id="checkBtn" onclick="checkNow()">1. Check</button>
+        <button type="button" class="btn success" id="saveBtn" onclick="saveNow()" disabled>2. Save</button>
+        <button type="button" class="btn secondary" onclick="resetForm()">Clear</button>
+      </div>
+      <div class="small-note">Click <b>Check</b> first. If no same record exists, click <b>Save</b> to add. If matches are found, review and confirm before saving.</div>
+    </form>
+  </section>
+</main>
+
+<!-- Login Modal -->
+<div class="modal-backdrop show" id="loginModal" style="z-index:9999;background:rgba(10,20,50,1);">
+  <div class="modal" style="max-width:400px;text-align:center;">
+    <div style="margin-bottom:18px;">
+      <h2 style="margin:0 0 4px;font-size:20px;">ES Print Group</h2>
+      <p style="margin:0;color:var(--ink-soft);font-size:13px;">Customer Clearing House — Login</p>
+    </div>
+    <div class="field"><label>Username</label><input type="text" id="loginUser" placeholder="Username" autocomplete="off" onkeydown="if(event.key==='Enter')document.getElementById('loginPass').focus()" /></div>
+    <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="Password" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+    <div id="loginError" style="color:var(--danger);font-size:12px;margin-bottom:8px;display:none;"></div>
+    <button class="btn" style="width:100%;padding:11px;" onclick="doLogin()">Login</button>
+    <div class="small-note" style="margin-top:12px;">Contact admin for credentials.</div>
+  </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-backdrop" id="changePwModal" style="z-index:150;">
+  <div class="modal" style="max-width:420px;">
+    <h3 id="cpwTitle">Change Password</h3>
+    <div id="cpwNotice" style="display:none;background:#e1ecff;color:#173cab;padding:10px;border-radius:7px;font-size:12.5px;margin-bottom:12px;line-height:1.4;"></div>
+    <div class="field"><label>Current Password</label><input type="password" id="cpw_current" autocomplete="current-password" /></div>
+    <div class="field"><label>New Password</label><input type="password" id="cpw_new" placeholder="Min 4 characters" autocomplete="new-password" /></div>
+    <div class="field"><label>Confirm New Password</label><input type="password" id="cpw_confirm" placeholder="Repeat new password" autocomplete="new-password" onkeydown="if(event.key==='Enter')changePassword()" /></div>
+    <div id="cpwMsg" style="display:none;padding:8px;border-radius:6px;font-size:12px;margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="cpwCancelBtn" onclick="closeChangePw()">Cancel</button>
+      <button class="btn" onclick="changePassword()">Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN Modal -->
+<div class="modal-backdrop" id="pinModal">
+  <div class="modal" style="max-width:420px;">
+    <h3>Admin access</h3>
+    <input type="password" id="pinInput" placeholder="PIN" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:7px;font-size:14px;margin-bottom:10px;" onkeydown="if(event.key==='Enter')verifyPIN()" />
+    <div class="small-note">Default PIN: <b>esprint2026</b></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closePIN()">Cancel</button>
+      <button class="btn" onclick="verifyPIN()">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Modal -->
+<div class="modal-backdrop" id="adminModal">
+  <div class="modal" style="max-width:1100px;">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;">
+      <span id="adminTitle">Admin — Customer Database</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn secondary row-btn" onclick="openChangePw()">🔑 Password</button>
+        <button class="btn secondary row-btn" id="adminUsersBtn" onclick="openUserManager()" style="display:none;">👥 Add / Manage Users</button>
+        <button class="btn secondary row-btn" onclick="openSettings()">⚙ Settings</button>
+        <button class="btn danger row-btn" onclick="doLogout()">Logout</button>
+        <button class="btn secondary row-btn" onclick="closeAdmin()">Close</button>
+      </div>
+    </h3>
+    <div class="list-toolbar">
+      <input type="search" id="searchBox" placeholder="Search name, phone, email, address…" oninput="renderTable()" />
+      <span class="stats" id="statsText"></span>
+      <button class="btn success" onclick="loadFromSheets()">⟳ Reload Sheets</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Company Name</th><th>Contact Person</th><th>Contact Number / Email</th>
+          <th>Location / Address</th><th>Lead Source</th><th>AE / SM</th><th>Date</th><th></th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="small-note" id="pageNote" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- User Management Modal -->
+<div class="modal-backdrop" id="userModal" style="z-index:160;">
+  <div class="modal" style="max-width:760px;">
+    <h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span>👥 User Accounts Management</span>
+      <button class="btn secondary row-btn" onclick="closeUserManager()">✕ Close</button>
+    </h3>
+    <p style="font-size:13px;color:var(--ink-soft);margin-top:0;margin-bottom:16px;">
+      Magdagdag, mag-edit, o magtanggal ng user accounts at i-set ang branch access permissions.
+    </p>
+
+    <!-- Add / Edit User Form Card -->
+    <div style="background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:20px;">
+      <h4 id="userFormTitle" style="margin:0 0 12px;font-size:14px;color:var(--ink);display:flex;align-items:center;gap:6px;">
+        <span>➕ Add New User</span>
+      </h4>
+      <input type="hidden" id="usr_edit_orig_username" />
+      <div class="row-2" style="margin-bottom:10px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Username *</label>
+          <input type="text" id="usr_name" placeholder="e.g. JUAN DELA CRUZ" autocomplete="off" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Password *</label>
+          <input type="text" id="usr_pass" placeholder="Password (min 4 chars)" autocomplete="off" />
+        </div>
+      </div>
+      <div class="row-2" style="margin-bottom:12px;">
+        <div class="field" style="margin-bottom:0;">
+          <label>Role</label>
+          <select id="usr_role" onchange="onUserRoleChange()" style="padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:#fff;">
+            <option value="user">User (Standard Access)</option>
+            <option value="admin">Admin (Full Access)</option>
+          </select>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Branch Access</label>
+          <select id="usr_branch_select" onchange="onUserBranchSelectChange()" style="padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:13px;background:#fff;">
+            <option value="ALL">ALL (All Branches)</option>
+            <option value="CUSTOM">Specific Branches...</option>
+          </select>
+        </div>
+      </div>
+      <div id="usr_custom_branches_wrap" style="display:none;margin-bottom:12px;padding:10px 12px;background:#fff;border:1px solid var(--line);border-radius:8px;">
+        <label style="font-size:12px;font-weight:600;color:var(--ink-soft);display:block;margin-bottom:6px;">Select Accessible Branches:</label>
+        <div id="usr_branch_checkboxes" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));gap:8px;font-size:12.5px;">
+        </div>
+      </div>
+      <div id="usrFormMsg" style="display:none;padding:8px 12px;border-radius:6px;font-size:12px;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" class="btn secondary" id="usr_cancel_btn" onclick="resetUserForm()" style="display:none;">Cancel Edit</button>
+        <button type="button" class="btn success" id="usr_save_btn" onclick="saveUserRecord()">➕ Add User</button>
+      </div>
+    </div>
+
+    <!-- Users Table List -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <h4 style="margin:0;font-size:14px;">Registered Users (<span id="userCountText">0</span>)</h4>
+      <input type="search" id="usr_search" placeholder="Search user or branch…" oninput="renderUsersTable()" style="padding:6px 10px;border:1px solid var(--line);border-radius:6px;font-size:12px;width:200px;" />
+    </div>
+    <div class="table-wrap" style="max-height:36vh;">
+      <table>
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Branch Access</th>
+            <th>Password</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="settingsModal">
+  <div class="modal" style="max-width:520px;">
+    <h3>⚙ Branch Settings</h3>
+    <p style="font-size:13px;color:var(--ink-soft);margin-top:0;">I-configure ang branch name at Google Sheet. Naka-save sa browser na ito lang.</p>
+    <div class="small-note" style="margin-bottom:10px;">Select a saved branch to activate or edit. To add a new branch, fill the fields below and click <b>Add Branch</b>.</div>
+    <div class="field">
+      <label>Saved Branches</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <select id="cfg_saved_names" onchange="syncSelectedFromNames()" style="padding:9px 11px;border:1px solid var(--line);border-radius:7px;font-size:13px;min-width:160px;"></select>
+        <select id="cfg_saved" onchange="syncSelectedFromCombined()" style="padding:9px 11px;border:1px solid var(--line);border-radius:7px;width:100%;font-size:13px;"></select>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <button class="btn" onclick="setActiveSelected()">Use Selected</button>
+        <button class="btn secondary" onclick="loadSelected()">Edit Selected</button>
+        <button class="btn danger" onclick="deleteSelected()">Remove Selected</button>
+      </div>
+    </div>
+    <div style="height:8px"></div>
+    <div class="field">
+      <label>Branch Name</label>
+      <input type="text" id="cfg_branch" placeholder="e.g. Visayas, Mindanao, Makati…" />
+    </div>
+    <div class="field">
+      <label>Google Sheet URL</label>
+      <input type="url" id="cfg_url" placeholder="https://docs.google.com/spreadsheets/d/..." />
+      <div class="small-note">Kopyahin ang buong URL ng Google Sheet mula sa browser.</div>
+    </div>
+    <div id="settingsMsg" style="display:none;padding:10px;border-radius:7px;font-size:12.5px;margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeSettings()">Cancel</button>
+      <button class="btn secondary" id="testBtn" onclick="testConnection()">Test Connection</button>
+      <button class="btn" onclick="addOrSaveSettings()">Add Branch</button>
+    </div>
+  </div>
+</div>
+
+<!-- Smart Paste Modal -->
+<div class="modal-backdrop" id="smartPasteModal">
+  <div class="modal" style="max-width:640px;">
+    <h3>Smart Paste</h3>
+    <p style="font-size:13px;color:var(--ink-soft);margin-top:0;">Paste ticket text here (labelled or unlabelled multi-line text) and the system will auto-fill matching fields.</p>
+    <div class="field">
+      <label>Paste ticket text</label>
+      <textarea id="smartText" placeholder="Paste ticket or customer text here... (Labelled or unlabelled)" style="min-height:140px;"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" onclick="closeSmartPaste()">Cancel</button>
+      <button class="btn" onclick="autoFillFromSmartPaste()">Auto-fill Fields</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal-backdrop" id="helpModal">
+  <div class="modal">
+    <h3>How to use</h3>
+    <ol style="font-size:13px;line-height:1.6;padding-left:18px;">
+      <li>Enter customer details (Contact Person and Contact Number are required).</li>
+      <li>Click <kbd>1. Check</kbd>. If no similar accounts → auto-saved. If matches found → review and confirm.</li>
+      <li>Click <kbd>Admin</kbd> + PIN to view, search, edit, or delete records.</li>
+      <li>Set your branch Google Sheet URL in <b>Admin → ⚙ Settings</b>.</li>
+    </ol>
+    <div class="modal-actions"><button class="btn" onclick="closeHelp()">Got it</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_PIN = 'esprint2026';
+const LS_BRANCH = 'esprint_branch';
+const LS_SHEET  = 'esprint_sheet_url';
+const LS_SHEETS = 'esprint_sheets'; // JSON array of {name,url}
+const LS_FORM_DATA = 'esprint_form_data'; // Auto-save form data
+const LS_LOGIN = 'esprint_login_session'; // Login session
+const LS_CREDENTIALS = 'esprint_credentials'; // Stored credentials
+
+// ============================================================
+// MULTI-USER ACCOUNTS WITH BRANCH ACCESS CONTROL
+// ============================================================
+const LS_CURRENT_USER = 'esprint_current_user'; // Current logged-in user
+const LS_LOGIN_DATE = 'esprint_login_date'; // Date of login (for auto-logout at end of day)
+
+// User accounts: username → { password, branches (array), role }
+// 'ALL' in branches means access to everything
+const DEFAULT_USERS = {
+  'ADMIN': { password: '', branches: ['ALL'], role: 'admin' }
+};
+
+// ---- Login System ----
+function getUserAccounts() {
+  try {
+    const stored = localStorage.getItem(LS_CREDENTIALS);
+    if(stored) return JSON.parse(stored);
+  } catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_USERS));
+}
+function saveUserAccounts(accounts) {
+  localStorage.setItem(LS_CREDENTIALS, JSON.stringify(accounts));
+  if (window.google && google.script && google.script.run) {
+    google.script.run.syncUserAccounts(accounts);
+  }
+}
+function getCurrentUser() {
+  try {
+    const stored = localStorage.getItem(LS_CURRENT_USER);
+    if(stored) return JSON.parse(stored);
+  } catch(e){}
+  return null;
+}
+function isLoggedIn() {
+  return !!getCurrentUser();
+}
+function hasAllAccess() {
+  const user = getCurrentUser();
+  return user && user.branches.includes('ALL');
+}
+function getUserBranches() {
+  const user = getCurrentUser();
+  if(!user) return [];
+  if(user.branches.includes('ALL')) return Object.keys(BRANCHES);
+  return user.branches;
+}
+function canAccessBranch(branchName) {
+  const user = getCurrentUser();
+  if(!user) return false;
+  if(user.branches.includes('ALL')) return true;
+  return user.branches.some(b => b.toUpperCase() === (branchName||'').toUpperCase());
+}
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  const accounts = getUserAccounts();
+  // Find matching user (case-insensitive username)
+  let matchedKey = null;
+  for(const key in accounts){
+    if(key.toUpperCase() === user.toUpperCase()){
+      matchedKey = key; break;
+    }
+  }
+  if(matchedKey && accounts[matchedKey].password === pass){
+    const acct = accounts[matchedKey];
+    const session = { username: matchedKey, branches: acct.branches, role: acct.role };
+    localStorage.setItem(LS_CURRENT_USER, JSON.stringify(session));
+    localStorage.setItem(LS_LOGIN_DATE, new Date().toISOString().slice(0,10));
+    document.getElementById('loginModal').classList.remove('show');
+    document.getElementById('appHeader').style.display='';
+    document.getElementById('appMain').style.display='';
+    errEl.style.display='none';
+    applyUserAccess();
+    toast('Welcome, '+matchedKey,'success');
+    
+    // Check if new user is required to change password on first login
+    if(acct.mustChangePass){
+      setTimeout(function(){
+        openChangePw(true);
+      }, 400);
+    }
+    
+    // Auto-set branch if user has only one branch
+    if(acct.branches.length === 1 && acct.branches[0] !== 'ALL'){
+      const branchName = acct.branches[0];
+      if(window.backendBranches && window.backendBranches[branchName]){
+        localStorage.setItem(LS_BRANCH, branchName);
+        localStorage.setItem(LS_SHEET, window.backendBranches[branchName]);
+        applyBranch();
+        loadFromSheets();
+      }
+    }
+  } else {
+    errEl.textContent='Invalid username or password.';
+    errEl.style.display='block';
+    document.getElementById('loginPass').value='';
+  }
+}
+function doLogout() {
+  localStorage.removeItem(LS_CURRENT_USER);
+  localStorage.removeItem(LS_LOGIN_DATE);
+  // Close all open modals
+  document.querySelectorAll('.modal-backdrop').forEach(m=>{
+    if(m.id !== 'loginModal') m.classList.remove('show');
+  });
+  // Show login, hide app
+  document.getElementById('loginModal').classList.add('show');
+  document.getElementById('appHeader').style.display='none';
+  document.getElementById('appMain').style.display='none';
+  // Clear login fields
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginError').style.display='none';
+}
+function checkLoginOnLoad() {
+  // Auto-logout if session is from a previous day
+  if(isLoggedIn()){
+    const loginDate = localStorage.getItem(LS_LOGIN_DATE);
+    const todayStr = new Date().toISOString().slice(0,10);
+    if(!loginDate || loginDate !== todayStr){
+      // Session expired — force re-login
+      doLogout();
+      toast('Session expired. Please login again.','warning');
+      return;
+    }
+  }
+  if(!isLoggedIn()){
+    document.getElementById('loginModal').classList.add('show');
+    document.getElementById('appHeader').style.display='none';
+    document.getElementById('appMain').style.display='none';
+  } else {
+    document.getElementById('loginModal').classList.remove('show');
+    document.getElementById('appHeader').style.display='';
+    document.getElementById('appMain').style.display='';
+    applyUserAccess();
+  }
+}
+function isEmmaAdmin() {
+  const user = getCurrentUser();
+  if(!user) return false;
+  const u = (user.username || '').toUpperCase().trim();
+  return u === 'EMMA MANALLO' || u === 'EMMA' || u.startsWith('EMMA ');
+}
+
+// Apply branch restrictions based on logged-in user
+function applyUserAccess() {
+  const user = getCurrentUser();
+  if(!user) return;
+  // Show username in header
+  const userTag = document.getElementById('userTag');
+  if(userTag) userTag.textContent = user.username;
+  
+  // Show Add User button ONLY for Admin Emma
+  const isEmma = isEmmaAdmin();
+  const headerUsersBtn = document.getElementById('headerUserBtn');
+  if(headerUsersBtn) {
+    headerUsersBtn.style.display = isEmma ? '' : 'none';
+  }
+  const adminUsersBtn = document.getElementById('adminUsersBtn');
+  if(adminUsersBtn) {
+    adminUsersBtn.style.display = isEmma ? '' : 'none';
+  }
+
+  // Auto-set branch for single-branch users
+  if(!hasAllAccess() && user.branches.length === 1){
+    const branchName = user.branches[0];
+    if(window.backendBranches && window.backendBranches[branchName]){
+      localStorage.setItem(LS_BRANCH, branchName);
+      localStorage.setItem(LS_SHEET, window.backendBranches[branchName]);
+    }
+  }
+  applyBranch();
+}
+// ---- Change Password ----
+function openChangePw(isFirstLogin) {
+  document.getElementById('cpw_current').value='';
+  document.getElementById('cpw_new').value='';
+  document.getElementById('cpw_confirm').value='';
+  document.getElementById('cpwMsg').style.display='none';
+  
+  const notice = document.getElementById('cpwNotice');
+  const cancelBtn = document.getElementById('cpwCancelBtn');
+  const title = document.getElementById('cpwTitle');
+  
+  if(isFirstLogin) {
+    window._isFirstLoginCpw = true;
+    if(title) title.textContent = '🔐 Set Your New Password';
+    if(notice) {
+      notice.style.display = 'block';
+      notice.innerHTML = '<b>Maligayang pagdating!</b> Dahil ito ang una mong log-in, kailangan mong palitan ang iyong temporary password para sa seguridad ng iyong account.';
+    }
+    if(cancelBtn) cancelBtn.style.display = 'none';
+  } else {
+    window._isFirstLoginCpw = false;
+    if(title) title.textContent = 'Change Password';
+    if(notice) notice.style.display = 'none';
+    if(cancelBtn) cancelBtn.style.display = '';
+  }
+  
+  document.getElementById('changePwModal').classList.add('show');
+}
+function closeChangePw() {
+  if(window._isFirstLoginCpw) {
+    toast('Kailangang magtakda ng bagong password sa unang log-in.', 'warning');
+    return;
+  }
+  document.getElementById('changePwModal').classList.remove('show');
+}
+function changePassword() {
+  const current = document.getElementById('cpw_current').value;
+  const newPw = document.getElementById('cpw_new').value;
+  const confirm = document.getElementById('cpw_confirm').value;
+  const msg = document.getElementById('cpwMsg');
+  const user = getCurrentUser();
+  const accounts = getUserAccounts();
+  if(!user || !accounts[user.username]){
+    msg.style.display='block';msg.style.background='#fce8e6';msg.style.color='#c0392b';
+    msg.textContent='Session error. Please re-login.'; return;
+  }
+  if(current !== accounts[user.username].password){
+    msg.style.display='block';msg.style.background='#fce8e6';msg.style.color='#c0392b';
+    msg.textContent='Current password is incorrect.'; return;
+  }
+  if(!newPw || newPw.length < 4){
+    msg.style.display='block';msg.style.background='#fce8e6';msg.style.color='#c0392b';
+    msg.textContent='New password must be at least 4 characters.'; return;
+  }
+  if(newPw === current){
+    msg.style.display='block';msg.style.background='#fce8e6';msg.style.color='#c0392b';
+    msg.textContent='Ang bagong password ay hindi dapat kapareho ng lumang password.'; return;
+  }
+  if(newPw !== confirm){
+    msg.style.display='block';msg.style.background='#fce8e6';msg.style.color='#c0392b';
+    msg.textContent='Passwords do not match.'; return;
+  }
+  accounts[user.username].password = newPw;
+  accounts[user.username].mustChangePass = false;
+  saveUserAccounts(accounts);
+  
+  msg.style.display='block';msg.style.background='#e2f7ec';msg.style.color='#147a52';
+  msg.textContent='✓ Password updated successfully!';
+  window._isFirstLoginCpw = false;
+  setTimeout(function(){
+    document.getElementById('changePwModal').classList.remove('show');
+  }, 1400);
+  toast('Password updated successfully!','success');
+}
+
+// ============================================================
+// USER ACCOUNTS MANAGEMENT (ADD / EDIT / DELETE)
+// Restricted exclusively to Admin Emma
+// ============================================================
+function openUserManager() {
+  const user = getCurrentUser();
+  if(!user) { toast('Please login first', 'error'); return; }
+  if(!isEmmaAdmin()) {
+    toast('Access restricted: Only Admin Emma can add or manage users.', 'error');
+    return;
+  }
+  populateBranchCheckboxes();
+  resetUserForm();
+  renderUsersTable();
+  document.getElementById('userModal').classList.add('show');
+}
+
+function closeUserManager() {
+  document.getElementById('userModal').classList.remove('show');
+}
+
+function populateBranchCheckboxes() {
+  const container = document.getElementById('usr_branch_checkboxes');
+  if(!container) return;
+  container.innerHTML = '';
+  
+  let allBranches = [];
+  if(window.backendBranches && Object.keys(window.backendBranches).length > 0) {
+    allBranches = Object.keys(window.backendBranches);
+  } else {
+    allBranches = ['NORTH MINDANAO', 'SOUTH LUZON', 'VISAYAS', 'NORTH LUZON', 'SOUTH MINDANAO'];
+  }
+  
+  allBranches.forEach(b => {
+    const label = document.createElement('label');
+    label.style = 'display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;padding:4px 0;';
+    label.innerHTML = `<input type="checkbox" class="usr-branch-cb" value="${escapeHTML(b)}" /> <span>${escapeHTML(b)}</span>`;
+    container.appendChild(label);
+  });
+}
+
+function onUserRoleChange() {
+  const role = document.getElementById('usr_role').value;
+  const branchSelect = document.getElementById('usr_branch_select');
+  if(role === 'admin') {
+    branchSelect.value = 'ALL';
+    onUserBranchSelectChange();
+  }
+}
+
+function onUserBranchSelectChange() {
+  const branchSelect = document.getElementById('usr_branch_select');
+  const customWrap = document.getElementById('usr_custom_branches_wrap');
+  if(!branchSelect || !customWrap) return;
+  if(branchSelect.value === 'CUSTOM') {
+    customWrap.style.display = 'block';
+  } else {
+    customWrap.style.display = 'none';
+  }
+}
+
+function resetUserForm() {
+  document.getElementById('usr_edit_orig_username').value = '';
+  document.getElementById('usr_name').value = '';
+  document.getElementById('usr_pass').value = '';
+  document.getElementById('usr_role').value = 'user';
+  document.getElementById('usr_branch_select').value = 'ALL';
+  document.getElementById('usr_custom_branches_wrap').style.display = 'none';
+  document.querySelectorAll('.usr-branch-cb').forEach(cb => cb.checked = false);
+  
+  document.getElementById('userFormTitle').innerHTML = '<span>➕ Add New User</span>';
+  document.getElementById('usr_save_btn').textContent = '➕ Add User';
+  document.getElementById('usr_cancel_btn').style.display = 'none';
+  const msg = document.getElementById('usrFormMsg');
+  if(msg) msg.style.display = 'none';
+}
+
+function saveUserRecord() {
+  const origUsername = document.getElementById('usr_edit_orig_username').value.trim();
+  const username = document.getElementById('usr_name').value.trim().toUpperCase();
+  const password = document.getElementById('usr_pass').value.trim();
+  const role = document.getElementById('usr_role').value;
+  const branchMode = document.getElementById('usr_branch_select').value;
+  const msg = document.getElementById('usrFormMsg');
+  
+  if(!username) {
+    showUserFormMsg('Username is required.', 'error');
+    return;
+  }
+  if(!password || password.length < 4) {
+    showUserFormMsg('Password must be at least 4 characters.', 'error');
+    return;
+  }
+  
+  let branches = [];
+  if(branchMode === 'ALL') {
+    branches = ['ALL'];
+  } else {
+    const checked = Array.from(document.querySelectorAll('.usr-branch-cb:checked')).map(cb => cb.value);
+    if(checked.length === 0) {
+      showUserFormMsg('Please select at least one branch for this user.', 'error');
+      return;
+    }
+    branches = checked;
+  }
+  
+  const accounts = getUserAccounts();
+  
+  // Check if username already exists under a different key
+  for(const key in accounts) {
+    if(key.toUpperCase() === username && (!origUsername || key.toUpperCase() !== origUsername.toUpperCase())) {
+      showUserFormMsg(`Username "${username}" is already in the list below.`, 'error');
+      renderUsersTable(username);
+      return;
+    }
+  }
+  
+  // If editing and username changed, delete old key
+  if(origUsername && origUsername.toUpperCase() !== username) {
+    for(const key in accounts) {
+      if(key.toUpperCase() === origUsername.toUpperCase()) {
+        delete accounts[key];
+      }
+    }
+  }
+  
+  // Save or update account (mark as mustChangePass if new user)
+  accounts[username] = {
+    password: password,
+    branches: branches,
+    role: role,
+    mustChangePass: origUsername ? (accounts[origUsername]?.mustChangePass || false) : true
+  };
+  
+  saveUserAccounts(accounts);
+  
+  // If current logged-in user was updated, refresh session
+  const currentUser = getCurrentUser();
+  if(currentUser && (currentUser.username.toUpperCase() === (origUsername||'').toUpperCase() || currentUser.username.toUpperCase() === username)) {
+    const updatedSession = { username: username, branches: branches, role: role };
+    localStorage.setItem(LS_CURRENT_USER, JSON.stringify(updatedSession));
+    applyUserAccess();
+  }
+  
+  resetUserForm();
+  renderUsersTable(username);
+  toast(origUsername ? `Updated user ${username}` : `Added user ${username}`, 'success');
+  showUserFormMsg(`✓ User "${username}" successfully ${origUsername ? 'updated' : 'added'}! Check table below.`, 'success');
+  setTimeout(() => { if(msg) msg.style.display = 'none'; }, 3000);
+}
+
+function showUserFormMsg(text, type) {
+  const msg = document.getElementById('usrFormMsg');
+  if(!msg) return;
+  msg.style.display = 'block';
+  if(type === 'error') {
+    msg.style.background = '#fce8e6';
+    msg.style.color = '#c0392b';
+    msg.textContent = '✗ ' + text;
+  } else {
+    msg.style.background = '#e2f7ec';
+    msg.style.color = '#147a52';
+    msg.textContent = text;
+  }
+}
+
+function editUserRecord(username) {
+  populateBranchCheckboxes();
+  const accounts = getUserAccounts();
+  let matchedKey = null;
+  for(const k in accounts) {
+    if(k.toUpperCase() === username.toUpperCase()) {
+      matchedKey = k; break;
+    }
+  }
+  if(!matchedKey) { toast('User not found','error'); return; }
+  const acct = accounts[matchedKey];
+  
+  document.getElementById('usr_edit_orig_username').value = matchedKey;
+  document.getElementById('usr_name').value = matchedKey;
+  document.getElementById('usr_pass').value = acct.password || '';
+  document.getElementById('usr_role').value = acct.role || 'user';
+  
+  const hasAll = (acct.branches || []).includes('ALL');
+  const branchSelect = document.getElementById('usr_branch_select');
+  if(hasAll) {
+    branchSelect.value = 'ALL';
+    document.getElementById('usr_custom_branches_wrap').style.display = 'none';
+  } else {
+    branchSelect.value = 'CUSTOM';
+    document.getElementById('usr_custom_branches_wrap').style.display = 'block';
+    document.querySelectorAll('.usr-branch-cb').forEach(cb => {
+      cb.checked = (acct.branches || []).includes(cb.value);
+    });
+  }
+  
+  document.getElementById('userFormTitle').innerHTML = `<span>✏ Edit User: <b>${escapeHTML(matchedKey)}</b></span>`;
+  document.getElementById('usr_save_btn').textContent = '💾 Save Changes';
+  document.getElementById('usr_cancel_btn').style.display = 'inline-block';
+  
+  document.getElementById('usr_name').focus();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function deleteUserRecord(username) {
+  const currentUser = getCurrentUser();
+  if(currentUser && currentUser.username.toUpperCase() === username.toUpperCase()) {
+    toast('Cannot delete your own currently logged-in account.', 'error');
+    return;
+  }
+  
+  const accounts = getUserAccounts();
+  let adminCount = 0;
+  for(const k in accounts) {
+    if(accounts[k].role === 'admin') adminCount++;
+  }
+  
+  let matchedKey = null;
+  for(const k in accounts) {
+    if(k.toUpperCase() === username.toUpperCase()) {
+      matchedKey = k; break;
+    }
+  }
+  if(!matchedKey) return;
+  
+  if(accounts[matchedKey].role === 'admin' && adminCount <= 1) {
+    toast('Cannot delete the only remaining admin account.', 'error');
+    return;
+  }
+  
+  if(!confirm(`Are you sure you want to delete user "${matchedKey}"?`)) return;
+  
+  delete accounts[matchedKey];
+  saveUserAccounts(accounts);
+  
+  if(document.getElementById('usr_edit_orig_username').value.toUpperCase() === username.toUpperCase()) {
+    resetUserForm();
+  }
+  renderUsersTable();
+  toast(`User "${matchedKey}" deleted.`, 'warning');
+}
+
+function renderUsersTable(highlightUsername) {
+  const tbody = document.getElementById('userTableBody');
+  if(!tbody) return;
+  const accounts = getUserAccounts();
+  const q = (document.getElementById('usr_search')?.value || '').trim().toLowerCase();
+  
+  const userList = Object.keys(accounts).map(name => ({
+    username: name,
+    ...accounts[name]
+  }));
+  
+  // Sort alphabetically by username
+  userList.sort((a, b) => a.username.localeCompare(b.username));
+  
+  const filtered = userList.filter(u => {
+    if(!q) return true;
+    if(u.username.toLowerCase().includes(q)) return true;
+    if((u.role||'').toLowerCase().includes(q)) return true;
+    if((u.branches||[]).join(' ').toLowerCase().includes(q)) return true;
+    return false;
+  });
+  
+  const countEl = document.getElementById('userCountText');
+  if(countEl) countEl.textContent = userList.length;
+  
+  if(filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty">No matching users found.</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = '';
+  const currentUser = getCurrentUser();
+  let targetRowEl = null;
+  
+  filtered.forEach(u => {
+    const isSelf = currentUser && currentUser.username.toUpperCase() === u.username.toUpperCase();
+    const isAdmin = u.role === 'admin';
+    const isTarget = highlightUsername && u.username.toUpperCase() === highlightUsername.toUpperCase();
+    
+    const branchesText = (u.branches || []).includes('ALL') 
+      ? '<span style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background:#dbeafe;color:#1e40af;">ALL BRANCHES</span>'
+      : (u.branches || []).map(b => `<span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:11px;background:#f1f5f9;color:#334155;margin:1px 2px;">${escapeHTML(b)}</span>`).join('');
+    
+    const roleBadge = isAdmin
+      ? '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#e0e7ff;color:#4338ca;">Admin</span>'
+      : '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:#f1f5f9;color:#475569;">User</span>';
+    
+    const safeKey = escapeHTML(u.username).replace(/[^a-zA-Z0-9]/g,'_');
+    const safePass = escapeHTML(u.password||'').replace(/'/g, "\\'");
+    
+    const tr = document.createElement('tr');
+    if(isTarget) {
+      tr.style.background = '#fef3c7';
+      tr.style.transition = 'background 1.5s ease';
+      setTimeout(() => { tr.style.background = ''; }, 3000);
+      targetRowEl = tr;
+    }
+    
+    tr.innerHTML = `
+      <td>
+        <b>${escapeHTML(u.username)}</b>
+        ${isSelf ? '<span style="font-size:10px;background:#dcfce7;color:#15803d;padding:1px 5px;border-radius:4px;margin-left:4px;">(You)</span>' : ''}
+        ${isTarget ? '<span style="font-size:10px;background:#fef08a;color:#854d0e;padding:1px 5px;border-radius:4px;margin-left:4px;">★ Selected</span>' : ''}
+      </td>
+      <td>${roleBadge}</td>
+      <td>${branchesText}</td>
+      <td style="font-family:monospace;font-size:12px;color:var(--ink-soft);">
+        <span id="pass_${safeKey}">••••••••</span>
+        <button type="button" class="btn ghost" style="padding:1px 6px;font-size:11px;color:var(--primary);margin-left:4px;border:none;" onclick="togglePassMask('${safeKey}', '${safePass}')">👁</button>
+      </td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="btn secondary row-btn" onclick="editUserRecord('${escapeHTML(u.username)}')">Edit</button>
+        <button class="btn danger row-btn" onclick="deleteUserRecord('${escapeHTML(u.username)}')">Del</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  if(targetRowEl) {
+    setTimeout(() => {
+      targetRowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 100);
+  }
+}
+
+function togglePassMask(spanId, rawPass) {
+  const el = document.getElementById('pass_' + spanId);
+  if(!el) return;
+  if(el.textContent === '••••••••') {
+    el.textContent = rawPass;
+    el.style.fontWeight = 'bold';
+    el.style.color = 'var(--ink)';
+  } else {
+    el.textContent = '••••••••';
+    el.style.fontWeight = 'normal';
+    el.style.color = 'var(--ink-soft)';
+  }
+}
+
+let customers = [], editingId = null, adminUnlocked = false, dbLoaded = false, appVersion = '';
+
+const FIELDS = [
+  {key:'name',label:'Company Name'},{key:'contact',label:'Contact Person'},
+  {key:'phone',label:'Contact Number'},{key:'phone2',label:'Alt Contact Number'},{key:'email',label:'Email'},{key:'alt_email',label:'Alternate Email'},
+  {key:'address',label:'Location/Address'},{key:'city',label:'City'},{key:'province',label:'Province'},{key:'lead_source',label:'Lead Source'},
+  {key:'inquiry',label:'Inquiry'},{key:'ae_full',label:'AE'},
+  {key:'sm_full',label:'SM'},{key:'date',label:'Date'}
+];
+const WORD_FIELDS  = ['name','contact','address'];
+const EXACT_FIELDS = ['email'];
+const STOPWORDS = new Set(['the','and','of','for','inc','corp','ltd','co','company','mr','ms','mrs',
+  'st','street','rd','ave','brgy','bldg','city','de','del','san','santa','sta']);
+
+// ============================================================
+// PHILIPPINE CITY/MUNICIPALITY → PROVINCE LOOKUP
+// Auto-fills Province when City is known
+// ============================================================
+const CITY_TO_PROVINCE = {
+// --- METRO MANILA ---
+'manila':'Metro Manila','mandaluyong':'Metro Manila','marikina':'Metro Manila','pasig':'Metro Manila',
+'quezon city':'Metro Manila','san juan':'Metro Manila','caloocan':'Metro Manila','malabon':'Metro Manila',
+'navotas':'Metro Manila','valenzuela':'Metro Manila','las piñas':'Metro Manila','las pinas':'Metro Manila',
+'makati':'Metro Manila','muntinlupa':'Metro Manila','parañaque':'Metro Manila','paranaque':'Metro Manila',
+'pasay':'Metro Manila','pateros':'Metro Manila','taguig':'Metro Manila',
+// --- ILOCOS NORTE ---
+'laoag':'Ilocos Norte','laoag city':'Ilocos Norte','adams':'Ilocos Norte','bacarra':'Ilocos Norte','bangui':'Ilocos Norte',
+'burgos':'Ilocos Norte','carasi':'Ilocos Norte','dumalneg':'Ilocos Norte','pagudpud':'Ilocos Norte','pasuquin':'Ilocos Norte',
+'piddig':'Ilocos Norte','sarrat':'Ilocos Norte','vintar':'Ilocos Norte','batac':'Ilocos Norte','batac city':'Ilocos Norte',
+'badoc':'Ilocos Norte','banna':'Ilocos Norte','currimao':'Ilocos Norte','dingras':'Ilocos Norte','marcos':'Ilocos Norte',
+'nueva era':'Ilocos Norte','paoay':'Ilocos Norte','pinili':'Ilocos Norte','san nicolas':'Ilocos Norte','solsona':'Ilocos Norte',
+'luba':'Abra','malibcong':'Abra','manabo':'Abra','penarrubia':'Abra','pidigan':'Abra','pilar':'Abra',
+'sallapadan':'Abra','san isidro':'Abra','san juan':'Abra','san quintin':'Abra','tayum':'Abra','tineg':'Abra','tubo':'Abra','villaviciosa':'Abra',
+// --- AGUSAN DEL NORTE ---
+'butuan':'Agusan del Norte','cabadbaran':'Agusan del Norte','buenavista':'Agusan del Norte','carmen':'Agusan del Norte',
+'jabonga':'Agusan del Norte','kitcharao':'Agusan del Norte','las nieves':'Agusan del Norte','magallanes':'Agusan del Norte',
+'nasipit':'Agusan del Norte','remedios t. romualdez':'Agusan del Norte','santiago':'Agusan del Norte','tubay':'Agusan del Norte',
+// --- AGUSAN DEL SUR ---
+'bayugan':'Agusan del Sur','bunawan':'Agusan del Sur','esperanza':'Agusan del Sur','la paz':'Agusan del Sur',
+'loreto':'Agusan del Sur','prosperidad':'Agusan del Sur','rosario':'Agusan del Sur','san francisco':'Agusan del Sur',
+'san luis':'Agusan del Sur','santa josefa':'Agusan del Sur','sibagat':'Agusan del Sur','talacogon':'Agusan del Sur','trento':'Agusan del Sur',
+// --- AKLAN ---
+'kalibo':'Aklan','altavas':'Aklan','balete':'Aklan','banga':'Aklan','batan':'Aklan','buruanga':'Aklan',
+'ibajay':'Aklan','lezo':'Aklan','libacao':'Aklan','linabuan sur':'Aklan','madalag':'Aklan','makato':'Aklan',
+'malay':'Aklan','malinao':'Aklan','nabas':'Aklan','new washington':'Aklan','numancia':'Aklan','tangalan':'Aklan','boracay':'Aklan',
+// --- ALBAY ---
+'legazpi':'Albay','ligao':'Albay','tabaco':'Albay','bacacay':'Albay','camalig':'Albay','daraga':'Albay',
+'guinobatan':'Albay','jovellar':'Albay','libon':'Albay','malilipot':'Albay','malinao':'Albay','manito':'Albay',
+'oas':'Albay','pio duran':'Albay','polangui':'Albay','rapu-rapu':'Albay','santo domingo':'Albay','tiwi':'Albay',
+// --- ANTIQUE ---
+'san jose de buenavista':'Antique','anini-y':'Antique','barbaza':'Antique','belison':'Antique','bugasong':'Antique',
+'caluya':'Antique','culasi':'Antique','hamtic':'Antique','laua-an':'Antique','libertad':'Antique','pandan':'Antique',
+'patnongon':'Antique','san remigio':'Antique','sebaste':'Antique','sibalom':'Antique','tibiao':'Antique','tobias fornier':'Antique','valderrama':'Antique',
+// --- APAYAO ---
+'kabugao':'Apayao','calanasan':'Apayao','conner':'Apayao','flora':'Apayao','luna':'Apayao','pudtol':'Apayao','santa marcela':'Apayao',
+// --- AURORA ---
+'baler':'Aurora','casiguran':'Aurora','dilasag':'Aurora','dinalungan':'Aurora','dingalan':'Aurora','dipaculao':'Aurora','maria aurora':'Aurora','san luis':'Aurora',
+// --- BASILAN ---
+'isabela city':'Basilan','lamitan':'Basilan','lantawan':'Basilan','maluso':'Basilan','sumisip':'Basilan','tipo-tipo':'Basilan','tuburan':'Basilan',
+// --- BATAAN ---
+'balanga':'Bataan','abucay':'Bataan','bagac':'Bataan','dinalupihan':'Bataan','hermosa':'Bataan','limay':'Bataan',
+'mariveles':'Bataan','morong':'Bataan','orani':'Bataan','orion':'Bataan','pilar':'Bataan','samal':'Bataan',
+// --- BATANES ---
+'basco':'Batanes','itbayat':'Batanes','ivana':'Batanes','mahatao':'Batanes','sabtang':'Batanes','uyugan':'Batanes',
+// --- BATANGAS ---
+'batangas city':'Batangas','batangas':'Batangas','lipa':'Batangas','tanauan':'Batangas','santo tomas':'Batangas','nasugbu':'Batangas',
+'balayan':'Batangas','bauan':'Batangas','calaca':'Batangas','calatagan':'Batangas','cuenca':'Batangas',
+'ibaan':'Batangas','laurel':'Batangas','lemery':'Batangas','lian':'Batangas','lobo':'Batangas',
+'mabini':'Batangas','malvar':'Batangas','mataas na kahoy':'Batangas','padre garcia':'Batangas',
+'rosario':'Batangas','san jose':'Batangas','san juan':'Batangas','san luis':'Batangas','san nicolas':'Batangas',
+'san pascual':'Batangas','santa teresita':'Batangas','agoncillo':'Batangas','alitagtag':'Batangas',
+'taysan':'Batangas','tingloy':'Batangas','tuy':'Batangas',
+// --- BENGUET ---
+'baguio':'Benguet','la trinidad':'Benguet','atok':'Benguet','bakun':'Benguet','bokod':'Benguet','buguias':'Benguet',
+'itogon':'Benguet','kabayan':'Benguet','kapangan':'Benguet','kibungan':'Benguet','mankayan':'Benguet',
+'sablan':'Benguet','tuba':'Benguet','tublay':'Benguet',
+// --- BOHOL ---
+'tagbilaran':'Bohol','alburquerque':'Bohol','alicia':'Bohol','anda':'Bohol','antequera':'Bohol','baclayon':'Bohol',
+'balilihan':'Bohol','batuan':'Bohol','bien unido':'Bohol','bilar':'Bohol','buenavista':'Bohol','calape':'Bohol',
+'candijay':'Bohol','carmen':'Bohol','clarin':'Bohol','corella':'Bohol','cortes':'Bohol','dagohoy':'Bohol',
+'danao':'Bohol','dauis':'Bohol','dimiao':'Bohol','duero':'Bohol','garcia hernandez':'Bohol','guindulman':'Bohol',
+'inabanga':'Bohol','jagna':'Bohol','jetafe':'Bohol','lila':'Bohol','loay':'Bohol','loboc':'Bohol','loon':'Bohol',
+'mabini':'Bohol','maribojoc':'Bohol','panglao':'Bohol','pilar':'Bohol','sagbayan':'Bohol',
+'san isidro':'Bohol','san miguel':'Bohol','sevilla':'Bohol','sierra bullones':'Bohol',
+'sikatuna':'Bohol','talibon':'Bohol','trinidad':'Bohol','tubigon':'Bohol','ubay':'Bohol','valencia':'Bohol',
+// --- BILIRAN ---
+'naval':'Biliran','almeria':'Biliran','biliran':'Biliran','cabucgayan':'Biliran','caibiran':'Biliran',
+'culaba':'Biliran','kawayan':'Biliran','maripipi':'Biliran',
+// --- BUKIDNON ---
+'malaybalay':'Bukidnon','valencia':'Bukidnon','baungon':'Bukidnon','cabanglasan':'Bukidnon','damulog':'Bukidnon',
+'dangcagan':'Bukidnon','don carlos':'Bukidnon','impasugong':'Bukidnon','kadingilan':'Bukidnon','kalilangan':'Bukidnon',
+'kibawe':'Bukidnon','kitaotao':'Bukidnon','lantapan':'Bukidnon','libona':'Bukidnon','malitbog':'Bukidnon',
+'manolo fortich':'Bukidnon','maramag':'Bukidnon','pangantucan':'Bukidnon','quezon':'Bukidnon',
+'san fernando':'Bukidnon','sumilao':'Bukidnon','talakag':'Bukidnon',
+// --- BULACAN ---
+'malolos':'Bulacan','meycauayan':'Bulacan','san jose del monte':'Bulacan','marilao':'Bulacan','bocaue':'Bulacan',
+'balagtas':'Bulacan','baliuag':'Bulacan','bulakan':'Bulacan','bustos':'Bulacan','calumpit':'Bulacan',
+'dona remedios trinidad':'Bulacan','guiguinto':'Bulacan','hagonoy':'Bulacan','norzagaray':'Bulacan',
+'obando':'Bulacan','pandi':'Bulacan','paombong':'Bulacan','plaridel':'Bulacan','pulilan':'Bulacan',
+'san ildefonso':'Bulacan','san miguel':'Bulacan','san rafael':'Bulacan','santa maria':'Bulacan',
+// --- CAGAYAN ---
+'tuguegarao':'Cagayan','abulug':'Cagayan','alcala':'Cagayan','allacapan':'Cagayan','amulung':'Cagayan',
+'aparri':'Cagayan','baggao':'Cagayan','ballesteros':'Cagayan','buguey':'Cagayan','calayan':'Cagayan',
+'camalaniugan':'Cagayan','claveria':'Cagayan','enrile':'Cagayan','gattaran':'Cagayan','gonzaga':'Cagayan',
+'iguig':'Cagayan','lal-lo':'Cagayan','lasam':'Cagayan','pamplona':'Cagayan','penablanca':'Cagayan',
+'piat':'Cagayan','rizal':'Cagayan','sanchez-mira':'Cagayan','santa ana':'Cagayan','santa praxedes':'Cagayan',
+'santa teresita':'Cagayan','santo nino':'Cagayan','solana':'Cagayan','tuao':'Cagayan',
+// --- CAMARINES NORTE ---
+'daet':'Camarines Norte','basud':'Camarines Norte','capalonga':'Camarines Norte','jose panganiban':'Camarines Norte',
+'labo':'Camarines Norte','mercedes':'Camarines Norte','paracale':'Camarines Norte','san lorenzo ruiz':'Camarines Norte',
+'san vicente':'Camarines Norte','santa elena':'Camarines Norte','talisay':'Camarines Norte','vinzons':'Camarines Norte',
+// --- CAMARINES SUR ---
+'naga':'Camarines Sur','iriga':'Camarines Sur','baao':'Camarines Sur','balatan':'Camarines Sur','bato':'Camarines Sur',
+'bombon':'Camarines Sur','buhi':'Camarines Sur','bula':'Camarines Sur','cabusao':'Camarines Sur','calabanga':'Camarines Sur',
+'camaligan':'Camarines Sur','canaman':'Camarines Sur','caramoan':'Camarines Sur','del gallego':'Camarines Sur',
+'gainza':'Camarines Sur','garchitorena':'Camarines Sur','goa':'Camarines Sur','lagonoy':'Camarines Sur',
+'libmanan':'Camarines Sur','lupi':'Camarines Sur','magarao':'Camarines Sur','milaor':'Camarines Sur',
+'minalabac':'Camarines Sur','nabua':'Camarines Sur','ocampo':'Camarines Sur','pamplona':'Camarines Sur',
+'pasacao':'Camarines Sur','pili':'Camarines Sur','presentacion':'Camarines Sur','ragay':'Camarines Sur',
+'sagnay':'Camarines Sur','san fernando':'Camarines Sur','san jose':'Camarines Sur','sipocot':'Camarines Sur',
+'siruma':'Camarines Sur','tigaon':'Camarines Sur','tinambac':'Camarines Sur',
+// --- CAMIGUIN ---
+'mambajao':'Camiguin','catarman':'Camiguin','guinsiliban':'Camiguin','mahinog':'Camiguin','sagay':'Camiguin',
+// --- CAPIZ ---
+'roxas city':'Capiz','dao':'Capiz','dumalag':'Capiz','dumarao':'Capiz','ivisan':'Capiz','jamindan':'Capiz',
+'ma-ayon':'Capiz','mambusao':'Capiz','panay':'Capiz','panitan':'Capiz','pilar':'Capiz','pontevedra':'Capiz',
+'president roxas':'Capiz','sapian':'Capiz','sigma':'Capiz','tapaz':'Capiz',
+// --- CATANDUANES ---
+'virac':'Catanduanes','bagamanoc':'Catanduanes','baras':'Catanduanes','bato':'Catanduanes','caramoran':'Catanduanes',
+'gigmoto':'Catanduanes','pandan':'Catanduanes','panganiban':'Catanduanes','san andres':'Catanduanes','san miguel':'Catanduanes','viga':'Catanduanes',
+// --- CAVITE ---
+'bacoor':'Cavite','cavite city':'Cavite','dasmarinas':'Cavite','general trias':'Cavite','imus':'Cavite',
+'tagaytay':'Cavite','trece martires':'Cavite','alfonso':'Cavite','amadeo':'Cavite','carmona':'Cavite',
+'gen. mariano alvarez':'Cavite','gma':'Cavite','indang':'Cavite','kawit':'Cavite','magallanes':'Cavite',
+'maragondon':'Cavite','mendez':'Cavite','naic':'Cavite','noveleta':'Cavite','rosario':'Cavite',
+'silang':'Cavite','tanza':'Cavite','ternate':'Cavite',
+// --- CEBU ---
+'cebu city':'Cebu','mandaue':'Cebu','lapu-lapu':'Cebu','talisay':'Cebu','toledo':'Cebu','naga':'Cebu',
+'bogo':'Cebu','carcar':'Cebu','danao':'Cebu','alcantara':'Cebu','alcoy':'Cebu','alegria':'Cebu',
+'aloguinsan':'Cebu','argao':'Cebu','asturias':'Cebu','badian':'Cebu','balamban':'Cebu','bantayan':'Cebu',
+'barili':'Cebu','boljoon':'Cebu','borbon':'Cebu','carmen':'Cebu','catmon':'Cebu','compostela':'Cebu',
+'consolacion':'Cebu','cordova':'Cebu','daanbantayan':'Cebu','dalaguete':'Cebu','dumanjug':'Cebu',
+'ginatilan':'Cebu','liloan':'Cebu','madridejos':'Cebu','malabuyoc':'Cebu','medellin':'Cebu',
+'minglanilla':'Cebu','moalboal':'Cebu','oslob':'Cebu','pilar':'Cebu','pinamungajan':'Cebu',
+'poro':'Cebu','ronda':'Cebu','samboan':'Cebu','san fernando':'Cebu','san francisco':'Cebu',
+'san remigio':'Cebu','santa fe':'Cebu','santander':'Cebu','sibonga':'Cebu','sogod':'Cebu',
+'tabogon':'Cebu','tabuelan':'Cebu','tuburan':'Cebu','tudela':'Cebu',
+// --- COTABATO (North) ---
+'kidapawan':'Cotabato','alamada':'Cotabato','aleosan':'Cotabato','antipas':'Cotabato','arakan':'Cotabato',
+'banisilan':'Cotabato','carmen':'Cotabato','kabacan':'Cotabato','libungan':'Cotabato','magpet':'Cotabato',
+'makilala':'Cotabato','matalam':'Cotabato','midsayap':'Cotabato','mlang':'Cotabato','pigcawayan':'Cotabato',
+'pikit':'Cotabato','president roxas':'Cotabato','tulunan':'Cotabato',
+// --- DAVAO DEL NORTE ---
+'tagum':'Davao del Norte','panabo':'Davao del Norte','island garden city of samal':'Davao del Norte','samal':'Davao del Norte',
+'asuncion':'Davao del Norte','braulio e. dujali':'Davao del Norte','carmen':'Davao del Norte','kapalong':'Davao del Norte',
+'new corella':'Davao del Norte','san isidro':'Davao del Norte','santo tomas':'Davao del Norte','talaingod':'Davao del Norte',
+// --- DAVAO DEL SUR ---
+'digos':'Davao del Sur','bansalan':'Davao del Sur','don marcelino':'Davao del Sur','hagonoy':'Davao del Sur',
+'jose abad santos':'Davao del Sur','kiblawan':'Davao del Sur','magsaysay':'Davao del Sur','malalag':'Davao del Sur',
+'malita':'Davao del Sur','matanao':'Davao del Sur','padada':'Davao del Sur','santa cruz':'Davao del Sur','sulop':'Davao del Sur',
+// --- DAVAO ORIENTAL ---
+'mati':'Davao Oriental','baganga':'Davao Oriental','banaybanay':'Davao Oriental','boston':'Davao Oriental',
+'caraga':'Davao Oriental','cateel':'Davao Oriental','governor generoso':'Davao Oriental','lupon':'Davao Oriental',
+'manay':'Davao Oriental','san isidro':'Davao Oriental','tarragona':'Davao Oriental',
+// --- DAVAO DE ORO ---
+'nabunturan':'Davao de Oro','compostela':'Davao de Oro','laak':'Davao de Oro','mabini':'Davao de Oro',
+'maco':'Davao de Oro','maragusan':'Davao de Oro','mawab':'Davao de Oro','monkayo':'Davao de Oro',
+'montevista':'Davao de Oro','new bataan':'Davao de Oro','pantukan':'Davao de Oro',
+// --- DAVAO OCCIDENTAL ---
+'malita':'Davao Occidental','don marcelino':'Davao Occidental','jose abad santos':'Davao Occidental',
+'santa maria':'Davao Occidental','sarangani':'Davao Occidental',
+// --- DAVAO (City) ---
+'davao city':'Davao del Sur','davao':'Davao del Sur',
+// --- EASTERN SAMAR ---
+'borongan':'Eastern Samar','arteche':'Eastern Samar','balangiga':'Eastern Samar','balangkayan':'Eastern Samar',
+'can-avid':'Eastern Samar','dolores':'Eastern Samar','general macarthur':'Eastern Samar','giporlos':'Eastern Samar',
+'guiuan':'Eastern Samar','hernani':'Eastern Samar','jipapad':'Eastern Samar','lawaan':'Eastern Samar',
+'llorente':'Eastern Samar','maslog':'Eastern Samar','maydolong':'Eastern Samar','mercedes':'Eastern Samar',
+'oras':'Eastern Samar','quinapondan':'Eastern Samar','salcedo':'Eastern Samar','san julian':'Eastern Samar',
+'san policarpo':'Eastern Samar','sulat':'Eastern Samar','taft':'Eastern Samar',
+// --- GUIMARAS ---
+'jordan':'Guimaras','buenavista':'Guimaras','nueva valencia':'Guimaras','san lorenzo':'Guimaras','sibunag':'Guimaras',
+// --- IFUGAO ---
+'lagawe':'Ifugao','aguinaldo':'Ifugao','alfonso lista':'Ifugao','asipulo':'Ifugao','banaue':'Ifugao',
+'hingyon':'Ifugao','hungduan':'Ifugao','kiangan':'Ifugao','lamut':'Ifugao','mayoyao':'Ifugao','tinoc':'Ifugao',
+// --- ILOCOS NORTE ---
+'laoag':'Ilocos Norte','batac':'Ilocos Norte','adams':'Ilocos Norte','bacarra':'Ilocos Norte','badoc':'Ilocos Norte',
+'bangui':'Ilocos Norte','banna':'Ilocos Norte','burgos':'Ilocos Norte','carasi':'Ilocos Norte','currimao':'Ilocos Norte',
+'dingras':'Ilocos Norte','dumalneg':'Ilocos Norte','marcos':'Ilocos Norte','nueva era':'Ilocos Norte',
+'pagudpud':'Ilocos Norte','paoay':'Ilocos Norte','pasuquin':'Ilocos Norte','piddig':'Ilocos Norte',
+'pinili':'Ilocos Norte','san nicolas':'Ilocos Norte','sarrat':'Ilocos Norte','solsona':'Ilocos Norte','vintar':'Ilocos Norte',
+// --- ILOCOS SUR ---
+'vigan':'Ilocos Sur','candon':'Ilocos Sur','bantay':'Ilocos Sur','cabugao':'Ilocos Sur','caoayan':'Ilocos Sur',
+'magsingal':'Ilocos Sur','narvacan':'Ilocos Sur','san fernando':'Ilocos Sur','san vicente':'Ilocos Sur',
+'santa':'Ilocos Sur','santa catalina':'Ilocos Sur','santa cruz':'Ilocos Sur','santa maria':'Ilocos Sur',
+'santiago':'Ilocos Sur','santo domingo':'Ilocos Sur','sinait':'Ilocos Sur','tagudin':'Ilocos Sur',
+// --- ILOILO ---
+'iloilo city':'Iloilo','passi':'Iloilo','ajuy':'Iloilo','alimodian':'Iloilo','anilao':'Iloilo','badiangan':'Iloilo',
+'balasan':'Iloilo','banate':'Iloilo','barotac nuevo':'Iloilo','barotac viejo':'Iloilo','batad':'Iloilo',
+'bingawan':'Iloilo','cabatuan':'Iloilo','calinog':'Iloilo','carles':'Iloilo','concepcion':'Iloilo',
+'dingle':'Iloilo','duenas':'Iloilo','dumangas':'Iloilo','estancia':'Iloilo','guimbal':'Iloilo',
+'igbaras':'Iloilo','janiuay':'Iloilo','lambunao':'Iloilo','leganes':'Iloilo','lemery':'Iloilo',
+'leon':'Iloilo','maasin':'Iloilo','miagao':'Iloilo','mina':'Iloilo','new lucena':'Iloilo',
+'oton':'Iloilo','pavia':'Iloilo','pototan':'Iloilo','san dionisio':'Iloilo','san enrique':'Iloilo',
+'san joaquin':'Iloilo','san miguel':'Iloilo','san rafael':'Iloilo','santa barbara':'Iloilo',
+'sara':'Iloilo','tigbauan':'Iloilo','tubungan':'Iloilo','zarraga':'Iloilo',
+// --- ISABELA ---
+'ilagan':'Isabela','cauayan':'Isabela','santiago':'Isabela','alicia':'Isabela','angadanan':'Isabela',
+'aurora':'Isabela','benito soliven':'Isabela','burgos':'Isabela','cabagan':'Isabela','cabatuan':'Isabela',
+'cordon':'Isabela','delfin albano':'Isabela','dinapigue':'Isabela','divilacan':'Isabela','echague':'Isabela',
+'gamu':'Isabela','jones':'Isabela','luna':'Isabela','maconacon':'Isabela','mallig':'Isabela',
+'naguilian':'Isabela','palanan':'Isabela','quezon':'Isabela','quirino':'Isabela','ramon':'Isabela',
+'reina mercedes':'Isabela','roxas':'Isabela','san agustin':'Isabela','san guillermo':'Isabela',
+'san isidro':'Isabela','san manuel':'Isabela','san mariano':'Isabela','san mateo':'Isabela',
+'san pablo':'Isabela','santa maria':'Isabela','santo tomas':'Isabela','tumauini':'Isabela',
+// --- KALINGA ---
+'tabuk':'Kalinga','balbalan':'Kalinga','lubuagan':'Kalinga','pasil':'Kalinga','pinukpuk':'Kalinga',
+'rizal':'Kalinga','tanudan':'Kalinga','tinglayan':'Kalinga',
+// --- LA UNION ---
+'san fernando':'La Union','agoo':'La Union','aringay':'La Union','bacnotan':'La Union','bagulin':'La Union',
+'balaoan':'La Union','bangar':'La Union','bauang':'La Union','burgos':'La Union','caba':'La Union',
+'luna':'La Union','naguilian':'La Union','pugo':'La Union','rosario':'La Union','san gabriel':'La Union',
+'san juan':'La Union','santo tomas':'La Union','sudipen':'La Union','tubao':'La Union',
+// --- LAGUNA ---
+'santa rosa':'Laguna','binan':'Laguna','san pedro':'Laguna','cabuyao':'Laguna','calamba':'Laguna',
+'los banos':'Laguna','san pablo':'Laguna','alaminos':'Laguna','bay':'Laguna','calauan':'Laguna',
+'cavinti':'Laguna','famy':'Laguna','kalayaan':'Laguna','liliw':'Laguna','luisiana':'Laguna',
+'lumban':'Laguna','mabitac':'Laguna','magdalena':'Laguna','majayjay':'Laguna','nagcarlan':'Laguna',
+'paete':'Laguna','pagsanjan':'Laguna','pakil':'Laguna','pangil':'Laguna','pila':'Laguna',
+'rizal':'Laguna','santa cruz':'Laguna','santa maria':'Laguna','siniloan':'Laguna','victoria':'Laguna',
+// --- LANAO DEL NORTE ---
+'iligan':'Lanao del Norte','tubod':'Lanao del Norte','bacolod':'Lanao del Norte','baloi':'Lanao del Norte',
+'baroy':'Lanao del Norte','kapatagan':'Lanao del Norte','kauswagan':'Lanao del Norte','kolambugan':'Lanao del Norte',
+'lala':'Lanao del Norte','linamon':'Lanao del Norte','magsaysay':'Lanao del Norte','maigo':'Lanao del Norte',
+'matungao':'Lanao del Norte','munai':'Lanao del Norte','nunungan':'Lanao del Norte','pantao ragat':'Lanao del Norte',
+'pantar':'Lanao del Norte','poona piagapo':'Lanao del Norte','salvador':'Lanao del Norte','sapad':'Lanao del Norte',
+'sultan naga dimaporo':'Lanao del Norte','tagoloan':'Lanao del Norte','tangcal':'Lanao del Norte',
+// --- LANAO DEL SUR ---
+'marawi':'Lanao del Sur','wao':'Lanao del Sur','malabang':'Lanao del Sur','ganassi':'Lanao del Sur',
+// --- LEYTE ---
+'tacloban':'Leyte','ormoc':'Leyte','baybay':'Leyte','abuyog':'Leyte','alangalang':'Leyte','albuera':'Leyte',
+'babatngon':'Leyte','barugo':'Leyte','bato':'Leyte','burauen':'Leyte','calubian':'Leyte','capoocan':'Leyte',
+'carigara':'Leyte','dagami':'Leyte','dulag':'Leyte','hilongos':'Leyte','hindang':'Leyte',
+'inopacan':'Leyte','isabel':'Leyte','jaro':'Leyte','javier':'Leyte','julita':'Leyte','kananga':'Leyte',
+'la paz':'Leyte','leyte':'Leyte','macarthur':'Leyte','mahaplag':'Leyte','matag-ob':'Leyte',
+'matalom':'Leyte','merida':'Leyte','palo':'Leyte','palompon':'Leyte','pastrana':'Leyte',
+'san isidro':'Leyte','san miguel':'Leyte','santa fe':'Leyte','tabango':'Leyte',
+'tabontabon':'Leyte','tanauan':'Leyte','tolosa':'Leyte','tunga':'Leyte','villaba':'Leyte',
+// --- MAGUINDANAO ---
+'cotabato city':'Maguindanao','buluan':'Maguindanao','datu odin sinsuat':'Maguindanao','datu paglas':'Maguindanao',
+'general salipada k. pendatun':'Maguindanao','mamasapano':'Maguindanao','parang':'Maguindanao',
+'shariff aguak':'Maguindanao','sultan kudarat':'Maguindanao','upi':'Maguindanao',
+// --- MARINDUQUE ---
+'boac':'Marinduque','buenavista':'Marinduque','gasan':'Marinduque','mogpog':'Marinduque',
+'santa cruz':'Marinduque','torrijos':'Marinduque',
+// --- MASBATE ---
+'masbate city':'Masbate','aroroy':'Masbate','baleno':'Masbate','balud':'Masbate','batuan':'Masbate',
+'cataingan':'Masbate','cawayan':'Masbate','claveria':'Masbate','dimasalang':'Masbate','esperanza':'Masbate',
+'mandaon':'Masbate','milagros':'Masbate','mobo':'Masbate','monreal':'Masbate','palanas':'Masbate',
+'pio v. corpuz':'Masbate','placer':'Masbate','san fernando':'Masbate','san jacinto':'Masbate',
+'san pascual':'Masbate','uson':'Masbate',
+// --- MISAMIS OCCIDENTAL ---
+'oroquieta':'Misamis Occidental','ozamiz':'Misamis Occidental','tangub':'Misamis Occidental',
+'aloran':'Misamis Occidental','baliangao':'Misamis Occidental','calamba':'Misamis Occidental',
+'concepcion':'Misamis Occidental','jimenez':'Misamis Occidental','lopez jaena':'Misamis Occidental',
+'panaon':'Misamis Occidental','plaridel':'Misamis Occidental','sapang dalaga':'Misamis Occidental',
+'sinacaban':'Misamis Occidental','tudela':'Misamis Occidental','bonifacio':'Misamis Occidental',
+'clarin':'Misamis Occidental','don victoriano chiongbian':'Misamis Occidental',
+// --- MISAMIS ORIENTAL ---
+'cagayan de oro':'Misamis Oriental','gingoog':'Misamis Oriental','el salvador':'Misamis Oriental',
+'alubijid':'Misamis Oriental','balingasag':'Misamis Oriental','balingoan':'Misamis Oriental',
+'binuangan':'Misamis Oriental','claveria':'Misamis Oriental','gitagum':'Misamis Oriental',
+'initao':'Misamis Oriental','jasaan':'Misamis Oriental','kinoguitan':'Misamis Oriental',
+'lagonglong':'Misamis Oriental','laguindingan':'Misamis Oriental','libertad':'Misamis Oriental',
+'lugait':'Misamis Oriental','magsaysay':'Misamis Oriental','manticao':'Misamis Oriental',
+'medina':'Misamis Oriental','naawan':'Misamis Oriental','opol':'Misamis Oriental',
+'salay':'Misamis Oriental','sugbongcogon':'Misamis Oriental','tagoloan':'Misamis Oriental',
+'talisayan':'Misamis Oriental','villanueva':'Misamis Oriental',
+// --- MOUNTAIN PROVINCE ---
+'bontoc':'Mountain Province','barlig':'Mountain Province','bauko':'Mountain Province','besao':'Mountain Province',
+'natonin':'Mountain Province','paracelis':'Mountain Province','sabangan':'Mountain Province',
+'sadanga':'Mountain Province','sagada':'Mountain Province','tadian':'Mountain Province',
+// --- NEGROS OCCIDENTAL ---
+'bacolod':'Negros Occidental','san carlos':'Negros Occidental','escalante':'Negros Occidental',
+'calatrava':'Negros Occidental','cadiz':'Negros Occidental','sagay':'Negros Occidental',
+'manapla':'Negros Occidental','murcia':'Negros Occidental','silay':'Negros Occidental',
+'talisay':'Negros Occidental','victorias':'Negros Occidental','valladolid':'Negros Occidental',
+'san enrique':'Negros Occidental','pontevedra':'Negros Occidental','pulupandan':'Negros Occidental',
+'la carlota':'Negros Occidental','bago':'Negros Occidental','binalbagan':'Negros Occidental',
+'isabela':'Negros Occidental','la castellana':'Negros Occidental','hinigaran':'Negros Occidental',
+'himamaylan':'Negros Occidental','kabankalan':'Negros Occidental','sipalay':'Negros Occidental',
+'candoni':'Negros Occidental','cauayan':'Negros Occidental','hinoba-an':'Negros Occidental','ilog':'Negros Occidental',
+// --- NEGROS ORIENTAL ---
+'dumaguete':'Negros Oriental','bais':'Negros Oriental','tanjay':'Negros Oriental','bayawan':'Negros Oriental',
+'canlaon':'Negros Oriental','guihulngan':'Negros Oriental','amlan':'Negros Oriental','ayungon':'Negros Oriental',
+'bacong':'Negros Oriental','basay':'Negros Oriental','bindoy':'Negros Oriental','dauin':'Negros Oriental',
+'jimalalud':'Negros Oriental','la libertad':'Negros Oriental','mabinay':'Negros Oriental',
+'manjuyod':'Negros Oriental','pamplona':'Negros Oriental','san jose':'Negros Oriental',
+'santa catalina':'Negros Oriental','siaton':'Negros Oriental','sibulan':'Negros Oriental',
+'tayasan':'Negros Oriental','valencia':'Negros Oriental','vallehermoso':'Negros Oriental','zamboanguita':'Negros Oriental',
+// --- NORTHERN SAMAR ---
+'catarman':'Northern Samar','allen':'Northern Samar','biri':'Northern Samar','bobon':'Northern Samar',
+'capul':'Northern Samar','victoria':'Northern Samar','lavezares':'Northern Samar','lope de vega':'Northern Samar',
+'mondragon':'Northern Samar','rosario':'Northern Samar','san antonio':'Northern Samar','san isidro':'Northern Samar',
+'san jose':'Northern Samar','san vicente':'Northern Samar','palapag':'Northern Samar','pambujan':'Northern Samar',
+'mapanas':'Northern Samar','san roque':'Northern Samar','catubig':'Northern Samar','gamay':'Northern Samar',
+'laoang':'Northern Samar','lapinig':'Northern Samar','las navas':'Northern Samar',
+// --- NUEVA ECIJA ---
+'cabanatuan':'Nueva Ecija','gapan':'Nueva Ecija','palayan':'Nueva Ecija','san jose':'Nueva Ecija',
+'munoz':'Nueva Ecija','santo domingo':'Nueva Ecija','talavera':'Nueva Ecija','aliaga':'Nueva Ecija',
+'cuyapo':'Nueva Ecija','zaragoza':'Nueva Ecija','guimba':'Nueva Ecija','licab':'Nueva Ecija',
+'nampicuan':'Nueva Ecija','quezon':'Nueva Ecija','carranglan':'Nueva Ecija','llanera':'Nueva Ecija',
+'lupao':'Nueva Ecija','pantabangan':'Nueva Ecija','talugtug':'Nueva Ecija','rizal':'Nueva Ecija',
+'laur':'Nueva Ecija','gabaldon':'Nueva Ecija','santa rosa':'Nueva Ecija','bongabon':'Nueva Ecija',
+'general tinio':'Nueva Ecija','jaen':'Nueva Ecija','penaranda':'Nueva Ecija','san antonio':'Nueva Ecija',
+'san isidro':'Nueva Ecija','san leonardo':'Nueva Ecija','cabiao':'Nueva Ecija',
+// --- NUEVA VIZCAYA ---
+'bayombong':'Nueva Vizcaya','solano':'Nueva Vizcaya','bambang':'Nueva Vizcaya','aritao':'Nueva Vizcaya',
+'bagabag':'Nueva Vizcaya','diadi':'Nueva Vizcaya','dupax del norte':'Nueva Vizcaya',
+'dupax del sur':'Nueva Vizcaya','kasibu':'Nueva Vizcaya','kayapa':'Nueva Vizcaya',
+'quezon':'Nueva Vizcaya','santa fe':'Nueva Vizcaya','villaverde':'Nueva Vizcaya',
+// --- OCCIDENTAL MINDORO ---
+'mamburao':'Occidental Mindoro','abra de ilog':'Occidental Mindoro','calintaan':'Occidental Mindoro',
+'looc':'Occidental Mindoro','lubang':'Occidental Mindoro','magsaysay':'Occidental Mindoro',
+'paluan':'Occidental Mindoro','rizal':'Occidental Mindoro','sablayan':'Occidental Mindoro',
+'san jose':'Occidental Mindoro','santa cruz':'Occidental Mindoro',
+// --- ORIENTAL MINDORO ---
+'calapan':'Oriental Mindoro','baco':'Oriental Mindoro','puerto galera':'Oriental Mindoro',
+'san teodoro':'Oriental Mindoro','pinamalayan':'Oriental Mindoro','roxas':'Oriental Mindoro',
+'bansud':'Oriental Mindoro','bongabong':'Oriental Mindoro','bulalacao':'Oriental Mindoro',
+'gloria':'Oriental Mindoro','mansalay':'Oriental Mindoro','naujan':'Oriental Mindoro',
+'socorro':'Oriental Mindoro','victoria':'Oriental Mindoro','pola':'Oriental Mindoro',
+// --- PALAWAN ---
+'puerto princesa':'Palawan','coron':'Palawan','el nido':'Palawan','busuanga':'Palawan',
+'roxas':'Palawan','san vicente':'Palawan','taytay':'Palawan','aborlan':'Palawan',
+'balabac':'Palawan','bataraza':'Palawan','narra':'Palawan','quezon':'Palawan',
+// --- PAMPANGA ---
+'angeles':'Pampanga','san fernando':'Pampanga','mabalacat':'Pampanga','magalang':'Pampanga',
+'floridablanca':'Pampanga','guagua':'Pampanga','lubao':'Pampanga','porac':'Pampanga',
+'santa rita':'Pampanga','sasmuan':'Pampanga','santa ana':'Pampanga','mexico':'Pampanga',
+'arayat':'Pampanga','bacolor':'Pampanga','apalit':'Pampanga','santo tomas':'Pampanga',
+'san luis':'Pampanga','san simon':'Pampanga','minalin':'Pampanga','masantol':'Pampanga',
+'macabebe':'Pampanga','candaba':'Pampanga',
+// --- PANGASINAN ---
+'dagupan':'Pangasinan','urdaneta':'Pangasinan','san carlos':'Pangasinan','alaminos':'Pangasinan',
+'lingayen':'Pangasinan','mangaldan':'Pangasinan','manaoag':'Pangasinan','bayambang':'Pangasinan',
+'calasiao':'Pangasinan','malasiqui':'Pangasinan','santa barbara':'Pangasinan','binalonan':'Pangasinan',
+'rosales':'Pangasinan','san manuel':'Pangasinan','umingan':'Pangasinan','villasis':'Pangasinan',
+'agno':'Pangasinan','san fabian':'Pangasinan',
+// --- QUEZON ---
+'lucena':'Quezon','tayabas':'Quezon','candelaria':'Quezon','sariaya':'Quezon','tiaong':'Quezon',
+'lucban':'Quezon','mauban':'Quezon','pagbilao':'Quezon','infanta':'Quezon','real':'Quezon',
+'lopez':'Quezon','calauag':'Quezon','guinayangan':'Quezon','gumaca':'Quezon','atimonan':'Quezon',
+'tagkawayan':'Quezon','catanauan':'Quezon','mulanay':'Quezon','unisan':'Quezon',
+// --- QUIRINO ---
+'cabarroguis':'Quirino','diffun':'Quirino','aglipay':'Quirino','maddela':'Quirino',
+'nagtipunan':'Quirino','saguday':'Quirino',
+// --- RIZAL ---
+'antipolo':'Rizal','cainta':'Rizal','rodriguez':'Rizal','san mateo':'Rizal','taytay':'Rizal',
+'angono':'Rizal','binangonan':'Rizal','teresa':'Rizal','cardona':'Rizal','jalajala':'Rizal',
+'morong':'Rizal','pililla':'Rizal','tanay':'Rizal','baras':'Rizal',
+// --- ROMBLON ---
+'romblon':'Romblon','odiongan':'Romblon','san agustin':'Romblon','alcantara':'Romblon',
+'banton':'Romblon','cajidiocan':'Romblon','concepcion':'Romblon','corcuera':'Romblon',
+'ferrol':'Romblon','looc':'Romblon','magdiwang':'Romblon','san andres':'Romblon',
+'san fernando':'Romblon','san jose':'Romblon','santa fe':'Romblon','santa maria':'Romblon',
+// --- SAMAR (Western) ---
+'catbalogan':'Samar','calbayog':'Samar','basey':'Samar','gandara':'Samar','marabut':'Samar',
+'paranas':'Samar','santa rita':'Samar','villareal':'Samar','zumarraga':'Samar',
+// --- SARANGANI ---
+'alabel':'Sarangani','glan':'Sarangani','kiamba':'Sarangani','maasim':'Sarangani',
+'maitum':'Sarangani','malapatan':'Sarangani','malungon':'Sarangani',
+// --- SIQUIJOR ---
+'siquijor':'Siquijor','larena':'Siquijor','lazi':'Siquijor','maria':'Siquijor','san juan':'Siquijor',
+// --- SORSOGON ---
+'sorsogon':'Sorsogon','sorsogon city':'Sorsogon','pilar':'Sorsogon','casiguran':'Sorsogon',
+'castilla':'Sorsogon','donsol':'Sorsogon','magallanes':'Sorsogon','gubat':'Sorsogon',
+'irosin':'Sorsogon','juban':'Sorsogon','matnog':'Sorsogon','bulan':'Sorsogon','bulusan':'Sorsogon',
+// --- SOUTH COTABATO ---
+'general santos':'South Cotabato','koronadal':'South Cotabato','polomolok':'South Cotabato',
+'tampakan':'South Cotabato','tupi':'South Cotabato','tantangan':'South Cotabato',
+'banga':'South Cotabato','lake sebu':'South Cotabato','norala':'South Cotabato',
+'surallah':'South Cotabato','tboli':'South Cotabato',
+// --- SOUTHERN LEYTE ---
+'maasin':'Southern Leyte','sogod':'Southern Leyte','bontoc':'Southern Leyte','limasawa':'Southern Leyte',
+'macrohon':'Southern Leyte','malitbog':'Southern Leyte','padre burgos':'Southern Leyte',
+'pintuyan':'Southern Leyte','saint bernard':'Southern Leyte','san francisco':'Southern Leyte',
+'san juan':'Southern Leyte','silago':'Southern Leyte','liloan':'Southern Leyte',
+'hinunangan':'Southern Leyte','hinundayan':'Southern Leyte','libagon':'Southern Leyte',
+// --- SULTAN KUDARAT ---
+'tacurong':'Sultan Kudarat','isulan':'Sultan Kudarat','lebak':'Sultan Kudarat','kalamansig':'Sultan Kudarat',
+'bagumbayan':'Sultan Kudarat','columbio':'Sultan Kudarat','esperanza':'Sultan Kudarat',
+'lambayong':'Sultan Kudarat','lutayan':'Sultan Kudarat','palimbang':'Sultan Kudarat',
+// --- SULU ---
+'jolo':'Sulu','indanan':'Sulu','maimbung':'Sulu','patikul':'Sulu','siasi':'Sulu','talipao':'Sulu',
+// --- SURIGAO DEL NORTE ---
+'surigao city':'Surigao del Norte','surigao':'Surigao del Norte','dapa':'Surigao del Norte',
+'del carmen':'Surigao del Norte','general luna':'Surigao del Norte','mainit':'Surigao del Norte',
+'placer':'Surigao del Norte','san francisco':'Surigao del Norte','gigaquit':'Surigao del Norte',
+'claver':'Surigao del Norte','malimono':'Surigao del Norte','alegria':'Surigao del Norte',
+'bacuag':'Surigao del Norte','tubod':'Surigao del Norte',
+// --- SURIGAO DEL SUR ---
+'tandag':'Surigao del Sur','bislig':'Surigao del Sur','hinatuan':'Surigao del Sur','barobo':'Surigao del Sur',
+'cantilan':'Surigao del Sur','carmen':'Surigao del Sur','carrascal':'Surigao del Sur',
+'lanuza':'Surigao del Sur','lianga':'Surigao del Sur','lingig':'Surigao del Sur',
+'madrid':'Surigao del Sur','marihatag':'Surigao del Sur','san agustin':'Surigao del Sur',
+'san miguel':'Surigao del Sur','tagbina':'Surigao del Sur','tago':'Surigao del Sur',
+// --- TARLAC ---
+'tarlac city':'Tarlac','tarlac':'Tarlac','concepcion':'Tarlac','camiling':'Tarlac',
+'paniqui':'Tarlac','gerona':'Tarlac','victoria':'Tarlac','capas':'Tarlac','bamban':'Tarlac',
+'moncada':'Tarlac','san jose':'Tarlac','la paz':'Tarlac','santa ignacia':'Tarlac','anao':'Tarlac',
+// --- TAWI-TAWI ---
+'bongao':'Tawi-Tawi','languyan':'Tawi-Tawi','mapun':'Tawi-Tawi','sapa-sapa':'Tawi-Tawi',
+'sibutu':'Tawi-Tawi','simunul':'Tawi-Tawi','sitangkai':'Tawi-Tawi',
+// --- ZAMBALES ---
+'olongapo':'Zambales','subic':'Zambales','iba':'Zambales','san marcelino':'Zambales',
+'castillejos':'Zambales','masinloc':'Zambales','palauig':'Zambales','san antonio':'Zambales',
+'san felipe':'Zambales','san narciso':'Zambales','santa cruz':'Zambales','botolan':'Zambales',
+'cabangan':'Zambales','candelaria':'Zambales',
+// --- ZAMBOANGA DEL NORTE ---
+'dipolog':'Zamboanga del Norte','dapitan':'Zamboanga del Norte','sindangan':'Zamboanga del Norte',
+'siocon':'Zamboanga del Norte','sirawai':'Zamboanga del Norte','manukan':'Zamboanga del Norte',
+'katipunan':'Zamboanga del Norte','polanco':'Zamboanga del Norte','liloy':'Zamboanga del Norte',
+'labason':'Zamboanga del Norte','salug':'Zamboanga del Norte','gutalac':'Zamboanga del Norte',
+'rizal':'Zamboanga del Norte','la libertad':'Zamboanga del Norte','mutia':'Zamboanga del Norte',
+// --- ZAMBOANGA DEL SUR ---
+'zamboanga city':'Zamboanga del Sur','zamboanga':'Zamboanga del Sur','pagadian':'Zamboanga del Sur',
+'aurora':'Zamboanga del Sur','dumingag':'Zamboanga del Sur','labangan':'Zamboanga del Sur',
+'mahayag':'Zamboanga del Sur','molave':'Zamboanga del Sur','tambulig':'Zamboanga del Sur',
+'tukuran':'Zamboanga del Sur','bayog':'Zamboanga del Sur','dimataling':'Zamboanga del Sur',
+'dinas':'Zamboanga del Sur','dumalinao':'Zamboanga del Sur','kumalarang':'Zamboanga del Sur',
+'guipos':'Zamboanga del Sur','lapuyan':'Zamboanga del Sur','margosatubig':'Zamboanga del Sur',
+'san miguel':'Zamboanga del Sur','san pablo':'Zamboanga del Sur','tabina':'Zamboanga del Sur',
+// --- ZAMBOANGA SIBUGAY ---
+'ipil':'Zamboanga Sibugay','kabasalan':'Zamboanga Sibugay','naga':'Zamboanga Sibugay',
+'alicia':'Zamboanga Sibugay','buug':'Zamboanga Sibugay','diplahan':'Zamboanga Sibugay',
+'imelda':'Zamboanga Sibugay','malangas':'Zamboanga Sibugay','payao':'Zamboanga Sibugay',
+'talusan':'Zamboanga Sibugay','siay':'Zamboanga Sibugay','titay':'Zamboanga Sibugay','tungawan':'Zamboanga Sibugay',
+// --- DINAGAT ISLANDS ---
+'basilisa':'Dinagat Islands','cagdianao':'Dinagat Islands','dinagat':'Dinagat Islands',
+'libjo':'Dinagat Islands','loreto':'Dinagat Islands','san jose':'Dinagat Islands','tubajon':'Dinagat Islands'
+};
+
+// Lookup function: given a city name, return the province
+function lookupProvince(city) {
+  if(!city) return '';
+  const raw = city.toString().trim().toLowerCase().replace(/\s+/g,' ');
+  // Try full exact match first (e.g., "quezon city", "batangas city")
+  if(CITY_TO_PROVINCE[raw]) return CITY_TO_PROVINCE[raw];
+  // Try without "city" suffix (e.g., "batangas city" → "batangas")
+  const noCity = raw.replace(/\s*city$/i,'').trim();
+  if(noCity !== raw && CITY_TO_PROVINCE[noCity]) return CITY_TO_PROVINCE[noCity];
+  // Try adding "city" suffix
+  const withCity = raw + ' city';
+  if(CITY_TO_PROVINCE[withCity]) return CITY_TO_PROVINCE[withCity];
+  return '';
+}
+
+// Auto-fill Province field when City is typed
+function autoFillProvince() {
+  const cityVal = document.getElementById('f_city').value.trim();
+  const provField = document.getElementById('f_province');
+  if(!cityVal) return;
+  const province = lookupProvince(cityVal);
+  if(province && !provField.value.trim()) {
+    provField.value = province;
+  }
+}
+
+function getSheetUrl()  { return localStorage.getItem(LS_SHEET)  || ''; }
+function getBranch()    { return localStorage.getItem(LS_BRANCH) || ''; }
+function isSheetsOn()   { return !!getSheetUrl(); }
+
+function uid() { return 'c_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6); }
+function today() { return new Date().toISOString().slice(0,10); }
+function norm(v) { return (v||'').toString().trim().toLowerCase().replace(/\s+/g,' '); }
+function escapeHTML(s) {
+  return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function tokenize(s) {
+  return (s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/)
+    .filter(t=>t.length>=3&&!STOPWORDS.has(t));
+}
+function digitsOnly(s) { return (s||'').replace(/\D/g,''); }
+
+function toast(msg,kind) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast show '+(kind||'');
+  clearTimeout(window._tt);
+  window._tt=setTimeout(()=>t.className='toast',3500);
+}
+
+function setSyncIndicator(status,msg) {
+  const el=document.getElementById('syncIndicator');
+  if(!el)return;
+  const map={
+    syncing:{bg:'#e1ecff',color:'#173cab',text:msg||'⟳ Syncing…'},
+    ok:     {bg:'#e2f7ec',color:'#147a52',text:msg||'✓ Synced'},
+    error:  {bg:'#fce8e6',color:'#c0392b',text:msg||'⚠ Sync failed'},
+    idle:   {bg:'#eef1f8',color:'#5b6577',text:msg||'Local mode'},
+  };
+  const s=map[status]||map.idle;
+  el.style.background=s.bg; el.style.color=s.color; el.textContent=s.text;
+}
+
+function applyBranch() {
+  const n=getBranch();
+  const t=document.getElementById('branchTag');
+  if(t){t.textContent=n||'Branch not set';t.style.background=n?'rgba(255,255,255,0.22)':'rgba(255,100,100,0.25)';}
+  const titleEl=document.getElementById('adminTitle');
+  if(titleEl){
+    if(n){
+      const cleanBranch=n.trim();
+      titleEl.textContent=/\bdatabase\b/i.test(cleanBranch)?cleanBranch.toUpperCase():cleanBranch.toUpperCase()+' DATABASE';
+    }else{
+      titleEl.textContent='ADMIN — CUSTOMER DATABASE';
+    }
+  }
+}
+
+function updateCount() {
+  document.getElementById('recordCountTag').textContent=customers.length.toLocaleString()+' records';
+}
+</script>
+<script>
+// ---- Form ----
+function readForm() {
+  const altEmailVal = document.getElementById('f_alt_email').value.trim();
+  return {
+    id:      document.getElementById('f_id').value||uid(),
+    name:    document.getElementById('f_name').value.trim(),
+    contact: document.getElementById('f_contact').value.trim(),
+    phone:   document.getElementById('f_phone').value.trim(),
+    phone2:  document.getElementById('f_phone2').value.trim(),
+    email:   document.getElementById('f_email').value.trim(),
+    alt_email:altEmailVal,
+    email2:   altEmailVal,
+    address: document.getElementById('f_address').value.trim(),
+    city:    document.getElementById('f_city').value.trim(),
+    province:document.getElementById('f_province').value.trim(),
+    lead_source:document.getElementById('f_lead_source').value.trim(),
+    inquiry: document.getElementById('f_inquiry').value.trim(),
+    ae_full: document.getElementById('f_ae_full').value.trim(),
+    sm_full: document.getElementById('f_sm_full').value.trim(),
+    type:'Corporate', status:'Active', date:today()
+  };
+}
+
+function saveFormToStorage() {
+  const data = readForm();
+  localStorage.setItem(LS_FORM_DATA, JSON.stringify(data));
+}
+
+function loadFormFromStorage() {
+  try {
+    const stored = localStorage.getItem(LS_FORM_DATA);
+    if(stored) {
+      const data = JSON.parse(stored);
+      writeForm(data);
+    }
+  } catch(e) {}
+}
+function writeForm(c) {
+  document.getElementById('f_id').value     =c.id||'';
+  document.getElementById('f_name').value   =c.name||'';
+  document.getElementById('f_contact').value=c.contact||'';
+  document.getElementById('f_phone').value  =c.phone||'';
+  document.getElementById('f_phone2').value =c.phone2||'';
+  document.getElementById('f_email').value  =c.email||'';
+  document.getElementById('f_alt_email').value=c.alt_email||c.email2||'';
+  document.getElementById('f_address').value=c.address||'';
+  document.getElementById('f_city').value   =c.city||'';
+  document.getElementById('f_province').value=c.province||'';
+  document.getElementById('f_lead_source').value=c.lead_source||'';
+  document.getElementById('f_inquiry').value=c.inquiry||'';
+  document.getElementById('f_ae_full').value=c.ae_full||'';
+  document.getElementById('f_sm_full').value=c.sm_full||'';
+}
+function resetForm() {
+  document.getElementById('entryForm').reset();
+  document.getElementById('f_id').value='';
+  editingId=null;
+  document.getElementById('formTitle').innerHTML='Customer details <small>(Contact Person and Contact Number are required)</small>';
+  document.getElementById('checkBtn').textContent='1. Check';
+  document.getElementById('saveBtn').disabled=true;
+  document.getElementById('saveBtn').textContent='2. Save';
+  document.getElementById('saveBtn').classList.remove('danger');
+  document.getElementById('saveBtn').classList.add('success');
+  document.getElementById('resultBanner').className='result-banner';
+  document.getElementById('matchList').innerHTML='';
+  window._checkState=null;
+  localStorage.removeItem(LS_FORM_DATA);
+}
+function invalidateCheck() {
+  const input = readForm();
+  if(editingId){
+    window._checkState = {mode:'update',input};
+    showResult('info','<b>Edit mode.</b> Click <b>Save</b> to update "'+escapeHTML(input.contact||input.name)+'".');
+    enableSave('2. Save changes');
+    return;
+  }
+  if(window._checkState){
+    window._checkState=null;
+    document.getElementById('resultBanner').className='result-banner';
+    document.getElementById('matchList').innerHTML='';
+  }
+  if(input.contact && input.phone){
+    enableSave('2. Save');
+  } else {
+    document.getElementById('saveBtn').disabled=true;
+    document.getElementById('saveBtn').textContent='2. Save';
+  }
+}
+</script>
+<script>
+// ---- Matching ----
+function findMatches(input) {
+  const inTok={};
+  WORD_FIELDS.forEach(f=>{inTok[f]=new Set(tokenize(input[f]));});
+  return customers.filter(c=>c.id!==input.id).map(c=>{
+    const reasons=[]; let score=0;
+    WORD_FIELDS.forEach(f=>{
+      if(!inTok[f].size)return;
+      const shared=tokenize(c[f]).filter(t=>inTok[f].has(t));
+      if(shared.length){reasons.push({field:f,kind:'word',shared:[...new Set(shared)]});score+=shared.length*(f==='name'?3:1);}
+    });
+    EXACT_FIELDS.forEach(f=>{
+      const a=norm(input[f]),b=norm(c[f]);
+      if(a&&b&&a===b){reasons.push({field:f,kind:'exact'});score+=5;}
+    });
+    const inPhones = [digitsOnly(input.phone), digitsOnly(input.phone2)].filter(Boolean);
+    const custPhones = [digitsOnly(c.phone), digitsOnly(c.phone2)].filter(Boolean);
+    let phoneMatched = false;
+    if(inPhones.length && custPhones.length){
+      for(const da of inPhones){
+        for(const db of custPhones){
+          if(da.length>=7 && db.length>=7 && da.slice(-7)===db.slice(-7)){
+            reasons.push({field:'phone',kind:'phone'}); score+=5; phoneMatched = true; break;
+          }
+        }
+        if(phoneMatched) break;
+      }
+    }
+    return reasons.length?{cust:c,reasons,score}:null;
+  }).filter(Boolean).sort((a,b)=>b.score-a.score);
+}
+
+function showResult(kind,html) {
+  const b=document.getElementById('resultBanner');
+  b.className='result-banner '+kind; b.innerHTML=html;
+}
+function enableSave(label,danger) {
+  const btn=document.getElementById('saveBtn');
+  btn.disabled=false; btn.textContent=label||'2. Save';
+  if(danger){btn.classList.remove('success');btn.classList.add('danger');}
+  else{btn.classList.remove('danger');btn.classList.add('success');}
+}
+
+function checkNow(callback) {
+  const input=readForm();
+  if(!input.contact || !input.phone){toast('Contact Person and Contact Number are required','error');return;}
+  const doCheck = function(){
+    if(editingId){
+      window._checkState={mode:'update',input};
+      showResult('info','<b>Edit mode.</b> Click <b>Save</b> to update "'+escapeHTML(input.contact||input.name)+'".');
+      document.getElementById('matchList').innerHTML='';
+      enableSave('2. Save changes');
+      return;
+    }
+    const matches=findMatches(input);
+    if(!matches.length){
+      window._checkState={mode:'new',input};
+      showResult('ok','<b>✓ No matching customer found.</b> Click <b>Save</b> to add this customer.');
+      document.getElementById('matchList').innerHTML='';
+      enableSave('2. Save as new',true);
+      return;
+    }
+    window._checkState={mode:'pending_confirm',input,matches};
+    showResult('warn','<b>⚠ '+matches.length+' similar account(s) found.</b> Review below and choose whether to merge or save as new.');
+    renderMatchList(matches);
+    document.getElementById('saveBtn').disabled=true;
+    document.getElementById('saveBtn').textContent='Confirm first';
+  };
+  if(!dbLoaded || isSheetsOn()){
+    document.getElementById('checkBtn').textContent='Checking…';
+    document.getElementById('checkBtn').disabled=true;
+    loadFromSheets(function(){
+      document.getElementById('checkBtn').textContent='1. Check';
+      document.getElementById('checkBtn').disabled=false;
+      doCheck();
+    });
+  } else {
+    doCheck();
+  }
+}
+
+function renderMatchList(matches) {
+  const box = document.getElementById('matchList');
+  box.innerHTML = '';
+  matches.slice(0,6).forEach((m) => {
+    const card = document.createElement('div');
+    card.className = 'match-card';
+    const pills = m.reasons.map(r => {
+      const lbl = FIELDS.find(x => x.key === r.field)?.label || r.field;
+      return '<span class="match-field">' + escapeHTML(lbl) + (r.kind === 'word' ? ': ' + r.shared.map(escapeHTML).join(', ') : '') + '</span>';
+    }).join(' ');
+    card.innerHTML = `
+      <div style="margin-bottom:6px;">${pills}</div>
+      <div style="font-weight:600;margin-bottom:4px;">${escapeHTML(m.cust.name)}</div>
+      <div style="font-size:12px;color:var(--ink-soft);">${escapeHTML(m.cust.phone||'')}${m.cust.phone2?'<br>'+escapeHTML(m.cust.phone2):''} ${escapeHTML(m.cust.email||'')} ${escapeHTML(m.cust.address||'')}</div>
+      <div style="margin-top:8px;"></div>
+    `;
+    const actionDiv = card.querySelector('div[style*="margin-top:8px"]');
+    const sameBtn = document.createElement('button');
+    sameBtn.type = 'button';
+    sameBtn.className = 'btn success row-btn';
+    sameBtn.textContent = 'Yes — same customer';
+    sameBtn.addEventListener('click', function() { confirmSame(m.cust.id); });
+    actionDiv.appendChild(sameBtn);
+    box.appendChild(card);
+  });
+  const noneCard = document.createElement('div');
+  noneCard.style = 'margin-top:12px;padding:12px;border:1px dashed var(--line);border-radius:8px;';
+  noneCard.innerHTML = '<b style="font-size:13px;">None of the above?</b>' +
+    '<div class="small-note" style="margin:4px 0 8px;">If this is a different customer, save as new.</div>';
+  const noBtn = document.createElement('button');
+  noBtn.type = 'button';
+  noBtn.className = 'btn row-btn';
+  noBtn.textContent = 'No — different customer';
+  noBtn.addEventListener('click', confirmDifferent);
+  noneCard.appendChild(noBtn);
+  box.appendChild(noneCard);
+}
+
+function confirmSame(id) {
+  if(!window._checkState||window._checkState.mode!=='pending_confirm')return;
+  window._checkState={...window._checkState,mode:'merge',mergeTargetId:id};
+  const t=customers.find(c=>c.id===id);
+  showResult('info','<b>Selected:</b> '+escapeHTML(t?.name||'')+'. Click <b>Save</b> to merge.');
+  document.getElementById('matchList').innerHTML='';
+  enableSave('2. Save (merge)');
+}
+function confirmDifferent() {
+  if(!window._checkState||window._checkState.mode!=='pending_confirm')return;
+  window._checkState={...window._checkState,mode:'new'};
+  showResult('warn','<b>Marked as new customer.</b> Click <b>Save</b> to add separately.');
+  document.getElementById('matchList').innerHTML='';
+  enableSave('2. Save as new',true);
+}
+</script>
+<script>
+// ---- Save / Update via google.script.run ----
+function _doSaveWithMatchCheck(input){
+  const matches = findMatches(input);
+  if(!matches.length){
+    customers.push(input); updateCount();
+    if(adminUnlocked)renderTable();
+    showResult('ok','<b>✓ Saved.</b> "'+escapeHTML(input.name)+'" added.');
+    pushToSheets(input,'save');
+    setTimeout(()=>resetForm(),1200);
+    return;
+  }
+  window._checkState = {mode:'pending_confirm',input,matches};
+  showResult('warn','<b>⚠ '+matches.length+' similar account(s) found.</b> Review below.');
+  renderMatchList(matches);
+  document.getElementById('saveBtn').disabled=true;
+  document.getElementById('saveBtn').textContent='Confirm first';
+}
+
+function saveNow() {
+  const st = window._checkState;
+  if(!st){
+    const input = readForm();
+    if(!input.contact || !input.phone){toast('Contact Person and Contact Number are required','error');return;}
+    // Always reload fresh data from sheets before checking for matches
+    if(isSheetsOn()){
+      document.getElementById('saveBtn').disabled=true;
+      document.getElementById('saveBtn').textContent='Checking…';
+      loadFromSheets(function(){
+        document.getElementById('saveBtn').disabled=false;
+        document.getElementById('saveBtn').textContent='2. Save';
+        _doSaveWithMatchCheck(input);
+      });
+      return;
+    }
+    _doSaveWithMatchCheck(input);
+    return;
+  }
+
+  if(st.mode==='new'){
+    customers.push(st.input); updateCount();
+    if(adminUnlocked)renderTable();
+    showResult('ok','<b>✓ Saved.</b> "'+escapeHTML(st.input.name)+'" added.');
+    pushToSheets(st.input,'save');
+    localStorage.removeItem(LS_FORM_DATA);
+  } else if(st.mode==='merge'){
+    const t=customers.find(c=>c.id===st.mergeTargetId);
+    if(!t){toast('Target missing','error');return;}
+    let upd=0;
+    ['contact','phone','phone2','email','alt_email','address','lead_source','inquiry','ae_full','sm_full','city','province'].forEach(k=>{
+      const ex=(t[k]||'').trim(), inc=(st.input[k]||'').trim();
+      if(inc&&inc!==ex){
+        if(!ex){
+          // Field was empty — fill it in
+          t[k]=inc;upd++;
+        } else if(k==='lead_source'){
+          // Append lead source
+          t.lead_source=ex+'\n— '+inc;upd++;
+        } else if(k==='ae_full' || k==='sm_full'){
+          // Always update AE/SM with latest value
+          t[k]=inc;upd++;
+        } else if(k==='email' || k==='alt_email'){
+          // Always update email with latest value
+          t[k]=inc;upd++;
+        }
+      }
+    });
+    // Always update the date to today on merge
+    t.date = today();
+    upd++;
+    showResult('ok','<b>✓ Merged.</b> '+(upd?upd+' field(s) updated on "'+escapeHTML(t.name)+'"':'No changes needed')+'.'); 
+    if(adminUnlocked)renderTable();
+    pushToSheets(t,'update');
+    localStorage.removeItem(LS_FORM_DATA);
+  } else if(st.mode==='update'){
+    const input = readForm();
+    const idx = customers.findIndex(c=>c.id===editingId);
+    if(idx>=0){
+      customers[idx] = {...customers[idx], ...input, id:editingId};
+      pushToSheets(customers[idx],'update');
+    }
+    editingId=null;
+    if(adminUnlocked)renderTable();
+    toast('Record updated','success');
+    localStorage.removeItem(LS_FORM_DATA);
+  }
+  window._checkState=null;
+  document.getElementById('matchList').innerHTML='';
+  setTimeout(()=>resetForm(),1200);
+}
+
+// ---- google.script.run wrappers ----
+function pushToSheets(customer, action) {
+  if(!isSheetsOn())return;
+  setSyncIndicator('syncing');
+  const fn = action==='save' ? 'saveCustomer' : 'updateCustomer';
+  google.script.run
+    .withSuccessHandler(r=>{
+      setSyncIndicator(r.ok?'ok':'error', r.ok?null:'⚠ '+r.error);
+      if(r.ok){
+        loadFromSheets();
+      }
+    })
+    .withFailureHandler(e=>{ setSyncIndicator('error','⚠ '+e.message); })
+    [fn](getSheetUrl(), customer);
+}
+
+function loadFromSheets(callback, isBackground) {
+  if(!isSheetsOn()){
+    if(!isBackground) {
+      setSyncIndicator('idle','Walang Sheet URL — pumunta sa Admin → ⚙ Settings');
+      toast('Set the active client sheet first in Settings','error');
+    }
+    if(typeof callback==='function') callback();
+    return;
+  }
+  if(!isBackground) {
+    setSyncIndicator('syncing','⟳ Loading client database from Google Sheets…');
+  }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(r.ok){
+        customers=r.customers; dbLoaded = true; updateCount();
+        if(adminUnlocked)renderTable();
+        setSyncIndicator('ok','✓ Live ('+customers.length+' records)');
+        if(!isBackground) {
+          toast('Loaded '+customers.length+' clients from sheet','success');
+        }
+        if(typeof callback==='function') callback();
+      } else {
+        if(!isBackground) {
+          setSyncIndicator('error','⚠ '+r.error);
+          toast('Load failed: '+r.error,'error');
+        }
+        if(typeof callback==='function') callback();
+      }
+    })
+    .withFailureHandler(function(e){
+      if(!isBackground) {
+        setSyncIndicator('error','⚠ '+e.message);
+        toast('Load failed: '+e.message,'error');
+      }
+      if(typeof callback==='function') callback();
+    })
+    .getAllCustomers(getSheetUrl());
+}
+
+function deleteCustomerFromSheets(id) {
+  if(!isSheetsOn()){
+    toast('Cannot delete: no active sheet set','error');
+    return;
+  }
+  google.script.run
+    .withSuccessHandler(function(r){
+      if(!r.ok){
+        toast('Delete sync failed: '+r.error,'error');
+      } else {
+        toast('Deleted from Google Sheet','success');
+        loadFromSheets();
+      }
+    })
+    .withFailureHandler(function(e){ toast('Delete sync failed: '+e.message,'error'); })
+    .deleteCustomer(getSheetUrl(), id);
+}
+
+function checkAppVersion() {
+  if (!window.google || !google.script) return;
+  google.script.run
+    .withSuccessHandler(function(r){
+      if (!r.ok) return;
+      if (!appVersion) { appVersion = r.version; return; }
+      if (r.version && r.version !== appVersion) {
+        toast('App updated — reloading...', 'info');
+        setTimeout(function(){ window.location.reload(true); }, 900);
+      }
+    })
+    .withFailureHandler(function(){})
+    .getAppVersion();
+}
+</script>
+<script>
+// ---- Admin panel ----
+function openAdmin() {
+  // Open admin directly without PIN for faster sheet configuration
+  adminUnlocked = true;
+  applyBranch();
+  const adminUsersBtn = document.getElementById('adminUsersBtn');
+  if(adminUsersBtn) {
+    adminUsersBtn.style.display = isEmmaAdmin() ? '' : 'none';
+  }
+  document.getElementById('adminModal').classList.add('show');
+  renderTable();
+}
+function closePIN(){document.getElementById('pinModal').classList.remove('show');document.getElementById('pinInput').value='';}
+function verifyPIN(){
+  if(document.getElementById('pinInput').value===ADMIN_PIN){
+    adminUnlocked=true;closePIN();
+    document.getElementById('adminModal').classList.add('show');
+    renderTable();toast('Admin unlocked','success');
+  } else {toast('Incorrect PIN','error');document.getElementById('pinInput').value='';}
+}
+function closeAdmin(){document.getElementById('adminModal').classList.remove('show');}
+
+const PAGE_SIZE=200;
+function renderTable(){
+  const tbody=document.getElementById('tableBody');
+  const q=norm(document.getElementById('searchBox').value);
+  const filtered=q?customers.filter(c=>FIELDS.some(f=>norm(c[f.key]).includes(q))):customers.slice();
+  filtered.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const shown=filtered.slice(0,PAGE_SIZE);
+  tbody.innerHTML=shown.length?'':'<tr><td colspan="8" class="empty">No records.</td></tr>';
+  const frag=document.createDocumentFragment();
+  shown.forEach(c=>{
+    const row=document.createElement('tr');
+    row.innerHTML=`
+      <td><b>${escapeHTML(c.name)}</b></td>
+      <td>${escapeHTML(c.contact||'')}</td>
+      <td>${escapeHTML(c.phone||'')}${c.phone2?'<br>'+escapeHTML(c.phone2):''}${c.email?'<br><span style="color:var(--ink-soft);font-size:11px;">'+escapeHTML(c.email)+'</span>':''}${(c.alt_email||c.email2)?'<br><span style="color:var(--ink-soft);font-size:11px;">'+escapeHTML(c.alt_email||c.email2)+'</span>':''}</td>
+      <td style="max-width:180px;">
+        ${escapeHTML((c.address||'').slice(0,80))}${(c.address||'').length>80?'…':''}
+        ${c.city||c.province?'<div style="color:var(--ink-soft);font-size:11px;margin-top:4px;">'+escapeHTML(c.city||'')+(c.city&&c.province?', ':'')+escapeHTML(c.province||'')+'</div>':''}
+      </td>
+      <td>${escapeHTML(c.lead_source||'')}</td>
+      <td>${escapeHTML(c.ae_full||'')}${c.sm_full?'<br><span style="color:var(--ink-soft);font-size:11px;">'+escapeHTML(c.sm_full)+'</span>':''}</td>
+      <td>${escapeHTML(c.date||'')}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn secondary row-btn" onclick="event.stopPropagation();editCustomer('${c.id}')">Edit</button>
+        <button class="btn danger row-btn" onclick="event.stopPropagation();delCustomer('${c.id}')">Del</button>
+      </td>`;
+    row.addEventListener('click',()=>editCustomer(c.id));
+    frag.appendChild(row);
+  });
+  tbody.appendChild(frag);
+  document.getElementById('statsText').textContent=shown.length+' of '+filtered.length+' · '+customers.length+' total';
+  document.getElementById('pageNote').textContent=filtered.length>PAGE_SIZE?'Showing first '+PAGE_SIZE+' — refine search to narrow down.':'';
+}
+
+function editCustomer(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  writeForm(c);editingId=id;
+  window._checkState={mode:'update',input:{...c}};
+  enableSave('2. Save changes');
+  document.getElementById('formTitle').innerHTML='Edit Customer <small>(changes overwrite record)</small>';
+  closeAdmin();window.scrollTo({top:0,behavior:'smooth'});toast('Editing "'+c.name+'"','');
+}
+function delCustomer(id){
+  const c=customers.find(x=>x.id===id);if(!c)return;
+  if(!confirm('Delete "'+c.name+'" permanently?'))return;
+  customers=customers.filter(x=>x.id!==id);
+  updateCount();toast('Customer deleted','warning');
+  deleteCustomerFromSheets(id);
+  renderTable();if(editingId===id)resetForm();
+}
+</script>
+<script>
+// ---- Smart Paste ----
+function openSmartPaste(){
+  document.getElementById('smartText').value='';
+  document.getElementById('smartPasteModal').classList.add('show');
+}
+function closeSmartPaste(){
+  document.getElementById('smartPasteModal').classList.remove('show');
+}
+function autoFillFromSmartPaste(){
+  const text = document.getElementById('smartText').value || '';
+  if(!text.trim()){toast('Please paste ticket text first','error');return;}
+  const parsed = parseSmartPaste(text);
+  if(!parsed.contact && !parsed.phone && !parsed.name && !parsed.email && !parsed.address){
+    toast('No recognizable fields found. Please check ticket text format.','warning');
+    return;
+  }
+  writeForm({...readForm(), ...parsed});
+  window._checkState = null;
+  invalidateCheck();
+  if(parsed.contact && parsed.phone){
+    enableSave('2. Save');
+  }
+  closeSmartPaste();
+  const filled = Object.entries(parsed).filter(([k,v])=>v).map(([k])=>FIELDS.find(f=>f.key===k)?.label||k).join(', ');
+  toast('Auto-filled: '+filled,'success');
+}
+
+function parseSmartPaste(text){
+  if(!text || !text.trim()) return {};
+
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const result = {};
+
+  // Label mappings for structured format (LABEL: VALUE or LABEL - VALUE)
+  const labelMaps = {
+    name: ['company name','company','account name','client name','customer name','store name','business name','name','co','corp','inc','account'],
+    contact: ['contact person','contact name','owner name','owner','person','attention','attn','client','customer','name','full name','buyer','rep'],
+    phone: ['contact #','contact number','contact no.','contact no','phone','tel','mobile','cell','cellphone','hp','no.','num','cp','mobile no','mobile number','phone no','phone no.','cell no','cell no.','cp no','cp no.','cp #'],
+    phone2: ['alternate contact','alt contact','second contact','other phone','other no','alt phone','alt #','alt mobile'],
+    email: ['email','email add','email address','e-mail','mail'],
+    alt_email: ['alternate email','alt email','second email'],
+    address: ['address','location','street address','delivery address','ship to','address line'],
+    city: ['city','municipality','mun'],
+    province: ['province','prov','state'],
+    inquiry: ['inquiry','inquiries','subject','product','service','interested in','order','item','remarks','notes'],
+    lead_source: ['lead source','lead','source','sources','how you know us','referral','channel','event','exhibition','fair'],
+    ae_full: ['ae','account executive','agent'],
+    sm_full: ['sm','sales manager','manager']
+  };
+
+  const unparsedLines = [];
+
+  // Pass 1: Try to parse explicit label: value or label - value format
+  for(const line of lines){
+    const lower = line.toLowerCase();
+    let matched = false;
+
+    for(const [key, labels] of Object.entries(labelMaps)){
+      if(result[key]) continue;
+
+      for(const label of labels){
+        const regex = new RegExp('^' + label.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') + '\\.?\\s*[:=\\-]\\s*(.+)$', 'i');
+        const match = line.match(regex);
+        if(match && match[1] && match[1].trim()){
+          result[key] = match[1].trim();
+          matched = true;
+          break;
+        }
+      }
+      if(matched) break;
+    }
+    if(!matched){
+      unparsedLines.push(line);
+    }
+  }
+
+  // Pass 2: Extract patterns from remaining lines (Email, Phone, Address, Lead Source)
+  const remainingLines = [];
+
+  const emailRegex = /\b([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})\b/gi;
+  const phoneRegex = /(?:\+?63|0)\s*9\d{2}[\s-]?\d{3}[\s-]?\d{4}|\b(?:\+?63|0)\d{1,2}[\s-]?\d{3,4}[\s-]?\d{4}\b/g;
+  const addressKeywordRegex = /\b(st|street|ave|avenue|rd|road|blvd|boulevard|brgy|barangay|bldg|building|unit|subd|subdivision|poblacion|zone|phase|sitio|purok|village|hwy|highway|ctr|center|plaza|cor|corner|comp|compound|flr|floor|lot|blk|block|no\.|#)\b/i;
+  const leadSourceRegex = /\b(expo|exhibition|trade show|convention|fair|event|fb|facebook|ig|instagram|tiktok|viber|website|google|shopee|lazada|walk-in|walkin|walk in|referral|flyers|ads|campaign|saturation|saturate|graphic expo|print expo)\b/i;
+
+  for(const line of unparsedLines){
+    let lineHandled = false;
+
+    // Check Email
+    const emailsInLine = [...line.matchAll(emailRegex)].map(m => m[1]);
+    if(emailsInLine.length > 0){
+      emailsInLine.forEach(em => {
+        if(!result.email) result.email = em;
+        else if((!result.alt_email || !result.email2) && em !== result.email) {
+          result.alt_email = em;
+          result.email2 = em;
+        }
+      });
+      const lineWithoutEmail = line.replace(emailRegex, '').trim();
+      if(!lineWithoutEmail || lineWithoutEmail.length < 3){
+        lineHandled = true;
+      }
+    }
+
+    // Check Phone - also split on / separator for numbers like "09770239706/09053149877 /0927 510 5655"
+    let phoneCandidates = line;
+    // Split by / to handle slash-separated phone numbers
+    const slashParts = line.split('/').map(p => p.trim()).filter(Boolean);
+    let allPhones = [];
+    slashParts.forEach(part => {
+      const found = part.match(phoneRegex) || [];
+      found.forEach(ph => allPhones.push(ph));
+    });
+    // Also try the whole line
+    const wholeLine = line.match(phoneRegex) || [];
+    wholeLine.forEach(ph => { if(!allPhones.includes(ph)) allPhones.push(ph); });
+
+    if(allPhones.length > 0){
+      allPhones.forEach(ph => {
+        const cleaned = normalizePhone(ph);
+        if(cleaned){
+          if(!result.phone) result.phone = cleaned;
+          else if(!result.phone2 && cleaned !== result.phone) result.phone2 = cleaned;
+        }
+      });
+      const lineWithoutPhone = line.replace(phoneRegex, '').replace(/[\/\,\s\-\+]/g, '').trim();
+      if(!lineWithoutPhone || lineWithoutPhone.length < 3){
+        lineHandled = true;
+      }
+    }
+
+    if(lineHandled) continue;
+
+    // Check Address (street/brgy/bldg/city keywords, PH provinces/regions, or municipality,province pattern)
+    const phProvincesRegex = /\b(abra|agusan del norte|agusan del sur|aklan|albay|antique|apayao|aurora|basilan|bataan|batanes|batangas|benguet|biliran|bohol|bukidnon|bulacan|cagayan|camarines norte|camarines sur|camiguin|capiz|catanduanes|cavite|cebu|cotabato|davao del norte|davao del sur|davao de oro|davao occidental|davao oriental|dinagat islands|eastern samar|guimaras|ifugao|ilocos norte|ilocos sur|iloilo|isabela|kalinga|la union|laguna|lanao del norte|lanao del sur|leyte|maguindanao|marinduque|masbate|misamis occidental|misamis oriental|mountain province|negros occidental|negros oriental|northern samar|nueva ecija|nueva vizcaya|occidental mindoro|oriental mindoro|palawan|pampanga|pangasinan|quezon|quirino|rizal|romblon|samar|sarangani|siquijor|sorsogon|south cotabato|southern leyte|sultan kudarat|sulu|surigao del norte|surigao del sur|tarlac|tawi-tawi|zambales|zamboanga del norte|zamboanga del sur|zamboanga sibugay|metro manila|ncr)\b/i;
+    const phCitiesRegex = /\b(iligan|manila|cebu|davao|quezon|pasig|makati|taguig|cagayan de oro|bulacan|cavite|laguna|pampanga|rizal|bacolod|iloilo|zamboanga|gensan|general santos|baguio|batangas|caloocan|las pi[nñ]as|mandaluyong|marikina|muntinlupa|navotas|para[nñ]aque|pasay|san juan|valenzuela|antipolo|bacoor|imus|dasmarinas|lucena|lipa|san pablo|cabanatuan|olongapo|angeles|tarlac|dagupan|urdaneta|vigan|laoag|tuguegarao|santiago|cauayan|butuan|surigao|tandag|malaybalay|valencia|ozamiz|oroquieta|tangub|pagadian|dipolog|dapitan|cotabato|kidapawan|koronadal|tacurong|tacloban|ormoc|baybay|roxas|kalibo|iloilo|dumaguete|tagbilaran|lapu-lapu|mandaue|talisay|toledo|naga|legazpi|sorsogon|masbate|puerto princesa|calapan|batangas|lucena|tayabas|san fernando|malolos|meycauayan|baroy|tubod|iligan)\b/i;
+    // Pattern: "Town, Province" or "Town Province" (common PH address format)
+    const isMunicipalityProvincePattern = /^[A-Za-z\s\-\.]+,\s*[A-Za-z\s\-\.]+$/i.test(line) && (phProvincesRegex.test(line) || phCitiesRegex.test(line));
+
+    // Skip address check if line looks like a person's name (has title like Mr./Mrs./Dr.)
+    // BUT only if the line doesn't also contain "city" keyword or comma-separated location
+    const personTitleRegex = /\b(mr|ms|mrs|dr|engr|atty|sir|ma'am|madam)\b\.?\s/i;
+    const hasPersonTitle = personTitleRegex.test(line);
+    const hasLocationIndicator = /\bcity\b/i.test(line) || /,/.test(line) || addressKeywordRegex.test(line);
+    const looksLikePerson = hasPersonTitle && !hasLocationIndicator;
+
+    // Also skip address check if line contains company/business keywords (e.g., "cooperative", "transport")
+    // UNLESS the line also has strong address indicators (brgy, st, bldg, etc.)
+    const companyInLineRegex = /\b(inc|corp|ltd|co|company|enterprises|enterprise|trading|services|global|group|holdings|solutions|ventures|industries|store|shop|hardware|print|prints|printing|studio|digital|media|marketing|supply|supplies|express|center|depot|sign|signs|signcraft|signage|graphics|graphic|ads|advertising|creative|creatives|design|designs|wraps|display|displays|decor|maker|makers|craft|crafts|works|workshop|lab|hub|factory|cooperative|coop|foundation|association|federation|transport|logistics|freight|cargo|trucking|hauling|manpower|construction|builders|realty|properties|food|restaurant|cafe|catering|hotel|resort|inn|pharmacy|drugstore|clinic|hospital|school|academy|college|university|church|parish|diocese)\b/i;
+    const looksLikeCompany = companyInLineRegex.test(line) && !addressKeywordRegex.test(line);
+
+    const isAddressLine = !looksLikePerson && !looksLikeCompany && (
+      addressKeywordRegex.test(line) ||
+      phCitiesRegex.test(line) ||
+      phProvincesRegex.test(line) ||
+      isMunicipalityProvincePattern ||
+      /^\d{1,4}\s+[A-Za-z0-9]/i.test(line)
+    );
+
+    if(isAddressLine && !result.address){
+      result.address = line;
+      // Try to extract city from "X City" pattern first (most specific)
+      if(!result.city){
+        // Match multi-word city names like "Cagayan de Oro City", "General Santos City", "Las Piñas City"
+        const cityWordMatch = line.match(/\b((?:[A-Za-z]+\s+){0,3}[A-Za-z]+)\s+city\b/i);
+        if(cityWordMatch){
+          let rawCity = cityWordMatch[1].trim();
+          // Try to find the longest known city name ending with "City"
+          const words = rawCity.split(/\s+/);
+          let bestCity = '';
+          for(let i = 0; i < words.length; i++){
+            const candidate = words.slice(i).join(' ').toLowerCase();
+            if(CITY_TO_PROVINCE[candidate] || CITY_TO_PROVINCE[candidate + ' city']){
+              bestCity = words.slice(i).join(' ');
+              break;
+            }
+          }
+          if(bestCity){
+            result.city = bestCity.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') + ' City';
+          } else {
+            // Fallback: use last 1-3 words before "City"
+            const lastWords = words.slice(-3).join(' ');
+            result.city = lastWords.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ') + ' City';
+          }
+        }
+      }
+      // Try to extract province from the line (but skip if it's part of a city name)
+      if(!result.province){
+        const provinceMatch = line.match(/\b(agusan del norte|agusan del sur|camarines norte|camarines sur|davao del norte|davao del sur|davao de oro|davao occidental|davao oriental|dinagat islands|eastern samar|ilocos norte|ilocos sur|lanao del norte|lanao del sur|misamis occidental|misamis oriental|mountain province|negros occidental|negros oriental|northern samar|nueva ecija|nueva vizcaya|occidental mindoro|oriental mindoro|south cotabato|southern leyte|sultan kudarat|surigao del norte|surigao del sur|zamboanga del norte|zamboanga del sur|zamboanga sibugay|metro manila|abra|aklan|albay|antique|apayao|aurora|basilan|bataan|batanes|batangas|benguet|biliran|bohol|bukidnon|bulacan|cagayan|camiguin|capiz|catanduanes|cavite|cebu|cotabato|guimaras|ifugao|iloilo|isabela|kalinga|la union|laguna|leyte|maguindanao|marinduque|masbate|palawan|pampanga|pangasinan|quezon|quirino|rizal|romblon|samar|sarangani|siquijor|sorsogon|sulu|tarlac|tawi-tawi|zambales|ncr)\b/i);
+        if(provinceMatch){
+          const matchedProv = provinceMatch[1].toLowerCase();
+          // Skip if the matched "province" is actually part of a city name (e.g., "cagayan" in "cagayan de oro")
+          const cityLower = (result.city || '').toLowerCase();
+          const isPartOfCity = cityLower.includes(matchedProv);
+          if(!isPartOfCity){
+            result.province = provinceMatch[1].split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+          }
+        }
+      }
+      // If still no city, try comma split for "Municipality, Province" pattern
+      if(!result.city){
+        const commaParts = line.split(',').map(p => p.trim()).filter(Boolean);
+        if(commaParts.length >= 2){
+          // Try to find the city in the comma parts (skip parts that are provinces or zip codes)
+          for(let i = commaParts.length - 1; i >= 0; i--){
+            const part = commaParts[i].replace(/^\d+\s*/, '').trim(); // Remove leading zip codes
+            if(!part) continue;
+            // Skip if this part is the province we already found
+            if(result.province && part.toLowerCase().includes(result.province.toLowerCase())) continue;
+            // Check if this part is a known city
+            const prov = lookupProvince(part);
+            if(prov){
+              result.city = part.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+              if(!result.province) result.province = prov;
+              break;
+            }
+          }
+        } else {
+          // No comma — try to get city from province match position
+          if(result.province){
+            const provIdx = line.toLowerCase().indexOf(result.province.toLowerCase());
+            if(provIdx > 0){
+              const beforeProvince = line.substring(0, provIdx).trim();
+              const parts = beforeProvince.split(/\s+/);
+              if(parts.length >= 1 && !result.city){
+                result.city = parts[parts.length - 1].charAt(0).toUpperCase() + parts[parts.length - 1].slice(1).toLowerCase();
+              }
+            }
+          }
+        }
+      }
+      // Auto-lookup province from detected city
+      if(!result.province && result.city){
+        const prov = lookupProvince(result.city);
+        if(prov) result.province = prov;
+      }
+      lineHandled = true;
+    }
+
+    // Check Lead Source — only if line is short (likely just the source name) or clearly a source
+    if(!lineHandled && leadSourceRegex.test(line) && !result.lead_source){
+      // If line is short (just a source name) or doesn't also contain inquiry keywords
+      if(line.split(/\s+/).length <= 4 || !(/\b(interested|printer|heatpress|heat press|cutter|graphtec|grando|sublimation|dtf|dtg)\b/i.test(line))){
+        result.lead_source = line;
+        lineHandled = true;
+      }
+    }
+
+    // Skip date lines (e.g., "7/23/2026", "2026-07-23") — don't process them
+    if(!lineHandled && /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(line.trim())){
+      lineHandled = true;
+    }
+    if(!lineHandled && /^\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}$/.test(line.trim())){
+      lineHandled = true;
+    }
+
+    if(!lineHandled){
+      remainingLines.push(line);
+    }
+  }
+
+  // Pass 3: Classify remaining lines (Company Name, Contact Person, or Inquiry/Product)
+  if(remainingLines.length > 0){
+    const personNameRegex = /\b[A-Z]\.\b|\b(mr|ms|mrs|dr|engr|atty|jr|sr|iii|iv)\b/i;
+    const companyKeywordsRegex = /\b(inc|corp|ltd|co|company|enterprises|enterprise|trading|services|global|group|holdings|solutions|ventures|industries|store|shop|hardware|print|prints|printing|studio|digital|media|marketing|supply|supplies|biz|ph|esgm|express|center|depot|sign|signs|signcraft|signage|graphics|grafix|graphic|ads|advertising|creatives|creative|design|designs|concept|concepts|wraps|display|displays|decor|maker|makers|craft|crafts|works|workshop|lab|hub|factory|cooperative|coop|foundation|association|federation|transport|logistics|freight|cargo|trucking|hauling|manpower|construction|builders|realty|properties|food|restaurant|cafe|catering|hotel|resort|inn|pharmacy|drugstore|clinic|hospital|school|academy|college|university|church|parish|diocese|barangay hall)\b/i;
+    // Common printing/product/service keywords — standalone products only (NOT business type words like "signage maker")
+    const inquiryKeywordsRegex = /\b(tarpaulin|tarp|sticker|stickers|vinyl|banner|banners|acrylic|sintra|panaflex|poster|posters|flyer|flyers|leaflet|brochure|business card|calling card|id card|mug|mugs|shirt|shirts|tshirt|t-shirt|jersey|uniform|sublimation|dtf|dtg|heat press|heat transfer|uv print|large format|wide format|canvas|photo|invitation|label|labels|packaging|box|calendar|notebook|envelope|letterhead|receipt|form|forms|offset|digital print|risograph|silk screen|screen print|emboss|foil|laminate|lamination|binding|die cut|laser cut|eco solvent|solvent|inkjet|rubber stamp|stamp|notary|seal|id lace|lanyard|pin|button pin|ref magnet|magnet|keychain|fan|paper bag|eco bag|car wrap|wrap|vehicle wrap|wall wrap|frosted|window|glass sticker|board up|board-up|photo booth|standee|x-stand|roll-up|pull-up|backdrop|tent card|menu|coupon|ticket|raffle|serial|numbering|carbonless|nct|continuous form|grando|graphtec|printer|heatpress|heat press|cutter|plotter|interested|epson|canon|brother|hp|roland|mimaki|mutoh|ricoh|xerox|konica|fuji|riso|duplo|gbc|oki|kyocera|lexmark|sawgrass|creality|uv flatbed|eco tank|ecotank|ink tank|inktank|l121|l3210|l3250|l5290|l6290|wf|et-|xp-)\b/i;
+
+    let foundContact = '';
+    let foundName = '';
+    let inquiryLines = [];
+
+    remainingLines.forEach((line, idx) => {
+      const isPerson = personNameRegex.test(line);
+      const hasCompanyKeyword = companyKeywordsRegex.test(line);
+      const hasInquiryKeyword = inquiryKeywordsRegex.test(line);
+
+      // If line has BOTH company and inquiry keywords → company wins (e.g., "Folkland Signage Maker")
+      const isCompany = hasCompanyKeyword || (/^[A-Z0-9\s\.\-]{3,30}$/.test(line) && !isPerson && !hasInquiryKeyword && line.split(/\s+/).length >= 2);
+      const isInquiry = hasInquiryKeyword && !hasCompanyKeyword;
+
+      if(!foundName && isCompany){
+        foundName = line;
+      } else if(!foundContact && isPerson){
+        foundContact = line;
+      } else if(isInquiry && !result.inquiry){
+        inquiryLines.push(line);
+      } else {
+        // Unclassified lines: try to assign as name or contact based on position
+        if(!foundName && idx === 0 && !isInquiry){
+          foundName = line;
+        } else if(!foundContact && !isInquiry){
+          foundContact = line;
+        } else if(!foundName && !isInquiry){
+          foundName = line;
+        } else {
+          inquiryLines.push(line);
+        }
+      }
+    });
+
+    // Smart swap: if a company-keyword line was found in remaining but result.name was set from a generic "Name:" label,
+    // the "Name:" value is likely the contact person, and the keyword line is the real company name
+    const companySwapRegex = /\b(inc|corp|ltd|co|company|enterprises|enterprise|trading|services|global|group|holdings|solutions|ventures|industries|store|shop|hardware|print|prints|printing|studio|digital|media|marketing|supply|supplies|sign|signs|signage|graphics|grafix|graphic|ads|advertising|design|designs|maker|makers|craft|works|workshop|factory|apparel|garments|textile)\b/i;
+    if(foundName && result.name && !result.contact){
+      // foundName has company keywords but result.name (from label) doesn't
+      if(companySwapRegex.test(foundName) && !companySwapRegex.test(result.name)){
+        result.contact = result.name; // Move "Name:" value to contact
+        result.name = foundName;      // Set company keyword line as company name
+      }
+    }
+
+    if(foundName && !result.name) result.name = foundName;
+    if(foundContact && !result.contact) result.contact = foundContact;
+    // Collect remaining unclassified lines into inquiry
+    if(inquiryLines.length && !result.inquiry) result.inquiry = inquiryLines.join(', ');
+
+    if(result.contact && !result.name) result.name = result.contact;
+    if(result.name && !result.contact) result.contact = result.name;
+  }
+
+  // Cleanup and normalize
+  result.name = result.name ? result.name.trim() : '';
+  result.contact = result.contact ? result.contact.trim() : '';
+  result.email = result.email ? result.email.trim() : '';
+  result.alt_email = result.alt_email ? result.alt_email.trim() : '';
+  result.email2 = result.email2 ? result.email2.trim() : (result.alt_email || '');
+  result.address = result.address ? result.address.trim() : '';
+  result.city = result.city ? result.city.trim() : '';
+  result.province = result.province ? result.province.trim() : '';
+  // If address was set (e.g., via label) but city/province not yet extracted, try to parse them
+  if(result.address && (!result.city || !result.province)){
+    const addrParts = result.address.split(',').map(p => p.trim()).filter(Boolean);
+    if(addrParts.length >= 2){
+      // Loop through comma parts from end to find city/province
+      const provLookup = Object.values(CITY_TO_PROVINCE);
+      const knownProvinces = [...new Set(provLookup)].map(p => p.toLowerCase());
+      for(let i = addrParts.length - 1; i >= 0; i--){
+        const part = addrParts[i].replace(/^\d+\s*/, '').trim(); // Remove leading zip codes
+        if(!part) continue;
+        const partLower = part.toLowerCase().replace(/\s+/g,' ');
+        // Skip "philippines" or country names
+        if(partLower === 'philippines' || partLower === 'ph' || partLower === 'pilipinas') continue;
+        // Check if this part is a known province
+        if(!result.province && (knownProvinces.includes(partLower))){
+          result.province = part.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+          continue;
+        }
+        // Check if this part is a known city
+        if(!result.city){
+          const prov = lookupProvince(part);
+          if(prov){
+            result.city = part.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+            if(!result.province) result.province = prov;
+            break;
+          }
+        }
+      }
+    } else if(!result.city) {
+      // No comma — try to extract city from address using lookup
+      const addrWords = result.address.split(/\s+/);
+      // Try progressively shorter suffixes of the address as city name
+      for(let i = 0; i < addrWords.length && i < 3; i++){
+        const candidate = addrWords.slice(i).join(' ');
+        const prov = lookupProvince(candidate);
+        if(prov){
+          result.city = candidate.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+          if(!result.province) result.province = prov;
+          break;
+        }
+      }
+    }
+  }
+  // Auto-lookup province from city if province is empty
+  if(!result.province && result.city){
+    const lookedUp = lookupProvince(result.city);
+    if(lookedUp) result.province = lookedUp;
+  }
+  result.inquiry = result.inquiry ? result.inquiry.trim() : '';
+  result.lead_source = result.lead_source ? result.lead_source.trim() : '';
+  result.phone = result.phone ? normalizePhone(result.phone) : '';
+  result.phone2 = result.phone2 ? normalizePhone(result.phone2) : '';
+
+  return result;
+}
+
+function normalizePhone(raw){
+  const digits = (raw||'').replace(/\D/g,'');
+  // +63 prefix (12 digits): convert to 0-prefixed
+  if(digits.length===12 && digits.startsWith('63')) return '0'+digits.slice(2);
+  // 63 prefix without + (11 digits starting with 63): convert to 0-prefixed
+  if(digits.length===11 && digits.startsWith('63')) return '0'+digits.slice(2);
+  // Already 11 digits starting with 0: standard PH mobile
+  if(digits.length===11 && digits.startsWith('0')) return digits;
+  // 10 digits starting with 9: add leading 0
+  if(digits.length===10 && digits.startsWith('9')) return '0'+digits;
+  return digits;
+}
+
+// ---- Settings ----
+function openSettings(){
+  // Repopulate dropdowns to show backend branches + saved branches
+  const sel=document.getElementById('cfg_saved');
+  const selNames=document.getElementById('cfg_saved_names');
+  
+  if(selNames) {
+    selNames.innerHTML = '<option value="">(no saved sheets)</option>';
+    if(window.backendBranches) {
+      for (var branchName in window.backendBranches) {
+        // Only show branches the user has access to
+        if(!canAccessBranch(branchName)) continue;
+        var opt = document.createElement('option');
+        opt.value = branchName;
+        opt.textContent = branchName;
+        selNames.appendChild(opt);
+      }
+    }
+  }
+  
+  if(sel) {
+    sel.innerHTML = '<option value="">(no saved sheets)</option>';
+    if(window.backendBranches) {
+      for (var branchName in window.backendBranches) {
+        if(!canAccessBranch(branchName)) continue;
+        var opt = document.createElement('option');
+        opt.value = branchName;
+        opt.textContent = branchName + ' — ' + window.backendBranches[branchName].substring(0, 60) + '...';
+        sel.appendChild(opt);
+      }
+    }
+  }
+  
+  document.getElementById('cfg_branch').value='';
+  document.getElementById('cfg_url').value='';
+  document.getElementById('settingsMsg').style.display='none';
+  document.getElementById('settingsModal').classList.add('show');
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('show');}
+function saveSettings(){
+  const b=document.getElementById('cfg_branch').value.trim();
+  const u=document.getElementById('cfg_url').value.trim();
+  if(!b){toast('Ilagay ang Branch Name','error');return;}
+  if(!u||!u.startsWith('https://')){toast('Ilagay ang tamang Google Sheet URL','error');return;}
+  localStorage.setItem(LS_BRANCH,b);
+  localStorage.setItem(LS_SHEET,u);
+  dbLoaded = false;
+  applyBranch();closeSettings();
+  toast('Na-save ang settings para sa '+b,'success');
+  loadFromSheets();
+}
+function testConnection(){
+  const u=document.getElementById('cfg_url').value.trim();
+  const msg=document.getElementById('settingsMsg');
+  const btn=document.getElementById('testBtn');
+  msg.style.display='block';
+  if(!u||!u.startsWith('https://')){
+    msg.style.background='#fce8e6';msg.style.color='#c0392b';
+    msg.textContent='✗ Ilagay muna ang Google Sheet URL.';return;
+  }
+  btn.disabled=true;btn.textContent='Testing…';
+  msg.style.background='#e1ecff';msg.style.color='#173cab';
+  msg.textContent='⟳ Connecting…';
+  google.script.run
+    .withSuccessHandler(function(r){
+      btn.disabled=false;btn.textContent='Test Connection';
+      if(r.ok){
+        msg.style.background='#e2f7ec';msg.style.color='#147a52';
+        msg.textContent='✓ Connected! Found '+r.customers.length+' record(s).';
+      } else {
+        msg.style.background='#fce8e6';msg.style.color='#c0392b';
+        msg.textContent='✗ Error: '+r.error;
+      }
+    })
+    .withFailureHandler(function(e){
+      btn.disabled=false;btn.textContent='Test Connection';
+      msg.style.background='#fce8e6';msg.style.color='#c0392b';
+      msg.textContent='✗ '+e.message;
+    })
+    .getAllCustomers(u);
+}
+
+// ---- Multiple sheets helpers ----
+function getSheetsList(){
+  try{return JSON.parse(localStorage.getItem(LS_SHEETS)||'[]');}catch(e){return []}
+}
+function saveSheetsList(list){
+  localStorage.setItem(LS_SHEETS, JSON.stringify(list||[]));
+}
+function populateSavedList(){
+  const sel=document.getElementById('cfg_saved');
+  const selNames=document.getElementById('cfg_saved_names');
+  if(!sel)return;
+  const list=getSheetsList();
+  sel.innerHTML='';
+  if(selNames) selNames.innerHTML='';
+  list.forEach((s,i)=>{
+    const opt=document.createElement('option');opt.value=i;opt.textContent=s.name+' — '+s.url;sel.appendChild(opt);
+    if(selNames){const nopt=document.createElement('option');nopt.value=i;nopt.textContent=s.name;selNames.appendChild(nopt);}    
+  });
+  if(list.length===0){const opt=document.createElement('option');opt.value='';opt.textContent='(no saved sheets)';sel.appendChild(opt); if(selNames){const nopt=document.createElement('option');nopt.value='';nopt.textContent='(no saved sheets)';selNames.appendChild(nopt);} }
+  else { sel.selectedIndex = 0; if(selNames) selNames.selectedIndex = 0; }
+}
+
+function syncSelectedFromNames(){
+  const a=document.getElementById('cfg_saved_names');
+  const b=document.getElementById('cfg_saved');
+  if(!a||!b) return; b.selectedIndex = a.selectedIndex;
+}
+
+function syncSelectedFromCombined(){
+  const a=document.getElementById('cfg_saved_names');
+  const b=document.getElementById('cfg_saved');
+  if(!a||!b) return; a.selectedIndex = b.selectedIndex;
+}
+function addOrSaveSettings(){
+  const b=document.getElementById('cfg_branch').value.trim();
+  const u=document.getElementById('cfg_url').value.trim();
+  if(!b){toast('Ilagay ang Branch Name','error');return;}
+  if(!u||!u.startsWith('https://')){toast('Ilagay ang tamang Google Sheet URL','error');return;}
+  const list=getSheetsList();
+  const existing=list.find(s=>s.url===u);
+  if(!existing){list.push({name:b,url:u});saveSheetsList(list);} 
+  localStorage.setItem(LS_BRANCH,b);
+  localStorage.setItem(LS_SHEET,u);
+  applyBranch();closeSettings();toast('Na-save ang sheet: '+b,'success');
+  loadFromSheets();
+}
+function loadSelected(){
+  const sel=document.getElementById('cfg_saved');
+  const branchName = sel.value;
+  
+  // Try backend branches first
+  if(window.backendBranches && window.backendBranches[branchName]) {
+    document.getElementById('cfg_branch').value = branchName;
+    document.getElementById('cfg_url').value = window.backendBranches[branchName];
+    return;
+  }
+  
+  // Fallback to saved branches
+  const list=getSheetsList();
+  if(!sel||!list.length) return;
+  const idx=parseInt(sel.value);
+  if(isNaN(idx)) return;
+  const s=list[idx];
+  document.getElementById('cfg_branch').value=s.name;
+  document.getElementById('cfg_url').value=s.url;
+}
+function setActiveSelected(){
+  const sel=document.getElementById('cfg_saved');
+  const branchName = sel.value;
+  
+  // Try to find from backend branches first
+  if(window.backendBranches && window.backendBranches[branchName]) {
+    localStorage.setItem(LS_BRANCH, branchName);
+    localStorage.setItem(LS_SHEET, window.backendBranches[branchName]);
+    dbLoaded=false;
+    applyBranch();
+    toast('Active sheet set to '+branchName,'success');
+    loadFromSheets();
+    closeSettings();
+    return;
+  }
+  
+  // Fallback to saved branches
+  const list=getSheetsList();
+  if(!sel||!list.length) return;
+  const idx=parseInt(sel.value);
+  if(isNaN(idx)) return;
+  const s=list[idx];
+  localStorage.setItem(LS_BRANCH,s.name);
+  localStorage.setItem(LS_SHEET,s.url);
+  dbLoaded=false;
+  applyBranch();
+  toast('Active sheet set to '+s.name,'success');
+  loadFromSheets();
+  closeSettings();
+}
+function deleteSelected(){
+  const sel=document.getElementById('cfg_saved');
+  const list=getSheetsList();
+  if(!sel||!list.length) return;const idx=parseInt(sel.value);if(isNaN(idx))return;
+  if(!confirm('Delete "'+list[idx].name+'" from saved sheets?'))return;
+  list.splice(idx,1);saveSheetsList(list);populateSavedList();toast('Deleted saved sheet','warning');
+}
+
+// ---- Modals ----
+function showHelp(){document.getElementById('helpModal').classList.add('show');}
+function closeHelp(){document.getElementById('helpModal').classList.remove('show');}
+
+document.querySelectorAll('.modal-backdrop').forEach(m=>{
+  m.addEventListener('click',e=>{
+    // Never allow closing login modal by clicking outside
+    if(m.id === 'loginModal') return;
+    if(e.target===m) m.classList.remove('show');
+  });
+});
+
+// ---- Init ----
+checkLoginOnLoad();
+applyBranch();
+setSyncIndicator('idle', isSheetsOn() ? '⟳ Loading…' : 'Select a branch in Admin → ⚙ Settings');
+
+// Load shared config from backend and populate available branches
+google.script.run
+  .withSuccessHandler(function(config) {
+    if(config.branches) {
+      // Store backend branches in a global variable for use in settings
+      window.backendBranches = config.branches;
+      
+      // Populate the branch dropdown with available branches from backend
+      var selNames = document.getElementById('cfg_saved_names');
+      var sel = document.getElementById('cfg_saved');
+      
+      if(selNames) {
+        selNames.innerHTML = '<option value="">(no saved sheets)</option>';
+        for (var branchName in config.branches) {
+          var opt = document.createElement('option');
+          opt.value = branchName;
+          opt.textContent = branchName;
+          selNames.appendChild(opt);
+        }
+      }
+      
+      if(sel) {
+        sel.innerHTML = '<option value="">(no saved sheets)</option>';
+        for (var branchName in config.branches) {
+          var opt = document.createElement('option');
+          opt.value = branchName;
+          opt.textContent = branchName + ' — ' + config.branches[branchName];
+          sel.appendChild(opt);
+        }
+      }
+    }
+    if(config && config.users) {
+      // Merge shared backend users with local credentials
+      var local = getUserAccounts();
+      var merged = Object.assign({}, local, config.users);
+      localStorage.setItem(LS_CREDENTIALS, JSON.stringify(merged));
+    }
+  })
+  .withFailureHandler(function(){})
+  .getSharedConfig();
+
+// Auto-save form data to localStorage on any input
+document.querySelectorAll('#entryForm input, #entryForm textarea').forEach(el => {
+  el.addEventListener('input', saveFormToStorage);
+  el.addEventListener('change', saveFormToStorage);
+});
+
+// Load saved form data
+loadFormFromStorage();
+
+checkAppVersion();
+setInterval(checkAppVersion, 60000);
+
+// Auto-sync client database silently every 30 seconds so all 10 users see real-time updates
+setInterval(function() {
+  if (typeof isSheetsOn === 'function' && isSheetsOn()) {
+    loadFromSheets(null, true);
+  }
+}, 30000);
+
+// Auto-logout at midnight: check every 60 seconds if the day has changed
+setInterval(function() {
+  if(isLoggedIn()){
+    const loginDate = localStorage.getItem(LS_LOGIN_DATE);
+    const todayStr = new Date().toISOString().slice(0,10);
+    if(!loginDate || loginDate !== todayStr){
+      toast('Session expired (end of day). Logging out…','warning');
+      setTimeout(doLogout, 1500);
+    }
+  }
+}, 60000);
+</script>
+</body>
+</html>
