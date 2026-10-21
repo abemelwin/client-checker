@@ -363,7 +363,17 @@ const LS_LOGIN_DATE = 'esprint_login_date'; // Date of login (for auto-logout at
 // User accounts: username → { password, branches (array), role }
 // 'ALL' in branches means access to everything
 const DEFAULT_USERS = {
-  'ADMIN': { password: '', branches: ['ALL'], role: 'admin' }
+  'SALESADMIN':       { password:'', branches:['ALL'], role:'admin' },
+  'LIEZEL BERMUDO':   { password:'', branches:['SOUTH LUZON'], role:'user' },
+  'ARIANNE SALANDANAN':{ password:'', branches:['NORTH LUZON'], role:'user' },
+  'NORELYN COQUILLA': { password:'', branches:['VISAYAS'], role:'user' },
+  'ELLYN ABELLO':     { password:'', branches:['VISAYAS'], role:'user' },
+  'ERNIEFER CENIZA':  { password:'', branches:['SOUTH MINDANAO'], role:'user' },
+  'RICHELLE ENRIQUEZ':{ password:'', branches:['SOUTH MINDANAO'], role:'user' },
+  'ANGEL CIMAFRANCA': { password:'', branches:['NORTH MINDANAO'], role:'user' },
+  'NARY JANE CANALITA':{ password:'', branches:['NORTH MINDANAO'], role:'user' },
+  'EMMA MANALLO':     { password:'', branches:['ALL'], role:'admin' },
+  'LEA TENORIO':      { password:'', branches:['ALL'], role:'admin' }
 };
 
 // ---- Login System ----
@@ -418,7 +428,7 @@ function doLogin() {
       matchedKey = key; break;
     }
   }
-  if(matchedKey && accounts[matchedKey].password === pass){
+  if(matchedKey && accounts[matchedKey].password && accounts[matchedKey].password === pass){
     const acct = accounts[matchedKey];
     const session = { username: matchedKey, branches: acct.branches, role: acct.role };
     localStorage.setItem(LS_CURRENT_USER, JSON.stringify(session));
@@ -492,11 +502,10 @@ function checkLoginOnLoad() {
     applyUserAccess();
   }
 }
-function isEmmaAdmin() {
+function canManageUsers() {
   const user = getCurrentUser();
   if(!user) return false;
-  const u = (user.username || '').toUpperCase().trim();
-  return u === 'EMMA MANALLO' || u === 'EMMA' || u.startsWith('EMMA ');
+  return hasAllAccess() || user.role === 'admin';
 }
 
 // Apply branch restrictions based on logged-in user
@@ -507,15 +516,15 @@ function applyUserAccess() {
   const userTag = document.getElementById('userTag');
   if(userTag) userTag.textContent = user.username;
   
-  // Show Add User button ONLY for Admin Emma
-  const isEmma = isEmmaAdmin();
+  // Show Add User button for all users with ALL branch access
+  const canManage = canManageUsers();
   const headerUsersBtn = document.getElementById('headerUserBtn');
   if(headerUsersBtn) {
-    headerUsersBtn.style.display = isEmma ? '' : 'none';
+    headerUsersBtn.style.display = canManage ? '' : 'none';
   }
   const adminUsersBtn = document.getElementById('adminUsersBtn');
   if(adminUsersBtn) {
-    adminUsersBtn.style.display = isEmma ? '' : 'none';
+    adminUsersBtn.style.display = canManage ? '' : 'none';
   }
 
   // Auto-set branch for single-branch users
@@ -605,13 +614,13 @@ function changePassword() {
 
 // ============================================================
 // USER ACCOUNTS MANAGEMENT (ADD / EDIT / DELETE)
-// Restricted exclusively to Admin Emma
+// Accessible to users with ALL branch access (Admins)
 // ============================================================
 function openUserManager() {
   const user = getCurrentUser();
   if(!user) { toast('Please login first', 'error'); return; }
-  if(!isEmmaAdmin()) {
-    toast('Access restricted: Only Admin Emma can add or manage users.', 'error');
+  if(!canManageUsers()) {
+    toast('Access restricted: Only accounts with ALL Branch access can manage users.', 'error');
     return;
   }
   populateBranchCheckboxes();
@@ -1882,7 +1891,7 @@ function openAdmin() {
   applyBranch();
   const adminUsersBtn = document.getElementById('adminUsersBtn');
   if(adminUsersBtn) {
-    adminUsersBtn.style.display = isEmmaAdmin() ? '' : 'none';
+    adminUsersBtn.style.display = canManageUsers() ? '' : 'none';
   }
   document.getElementById('adminModal').classList.add('show');
   renderTable();

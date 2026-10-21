@@ -54,7 +54,10 @@ var BRANCHES = {
 ```
 Ensure each connected Google Spreadsheet has a sheet/tab named `CLIENT DATABASE` matching the column definitions in `COL_MAP`.
 
-### 4. Deploy as a Web App
+### 4. Configure User Accounts
+In `index.html`, set a unique password for each account in `DEFAULT_USERS` before deploying. Passwords are intentionally blank in this repository; accounts with blank passwords cannot sign in. Do not commit passwords or private spreadsheet URLs.
+
+### 5. Deploy as a Web App
 1. Click **Deploy** > **New deployment**.
 2. Select type: **Web app**.
 3. Configure the deployment:
